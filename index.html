@@ -152,6 +152,97 @@
       background: radial-gradient(circle, rgba(56, 189, 248, 0.22), transparent 65%);
     }
 
+    /* ---------- Floating hero chips (key-orbit style) ---------- */
+    .hero-orbit {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+    }
+    .hero-chip {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.9rem;
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(34, 211, 238, 0.18);
+      background: rgba(17, 24, 39, 0.72);
+      backdrop-filter: blur(14px) saturate(1.3);
+      -webkit-backdrop-filter: blur(14px) saturate(1.3);
+      color: #94a3b8;
+      box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.32),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+      animation: float-chip 7.5s ease-in-out infinite;
+      will-change: transform;
+      opacity: 0;
+    }
+    .hero-chip.is-in {
+      opacity: 1;
+    }
+    .hero-chip b {
+      font-weight: 700;
+      color: #22d3ee;
+    }
+    .hero-chip.violet b { color: #a78bfa; }
+    .hero-chip.emerald b { color: #34d399; }
+    .hero-chip.amber b { color: #fbbf24; }
+    .hero-chip.rose b { color: #fb7185; }
+    .hero-chip.sky b { color: #38bdf8; }
+
+    .hero-chip:nth-child(1) { top: 16%; left: 3%; animation-delay: 0s; }
+    .hero-chip:nth-child(2) { top: 38%; left: 1%; animation-delay: -1.2s; }
+    .hero-chip:nth-child(3) { top: 64%; left: 5%; animation-delay: -2.4s; }
+    .hero-chip:nth-child(4) { top: 18%; right: 2%; animation-delay: -0.7s; }
+    .hero-chip:nth-child(5) { top: 44%; right: 0%; animation-delay: -1.9s; }
+    .hero-chip:nth-child(6) { top: 70%; right: 4%; animation-delay: -3.1s; }
+
+    @keyframes float-chip {
+      0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+      50% { transform: translateY(-16px) rotate(1.4deg); }
+    }
+
+    @media (max-width: 1024px) {
+      .hero-orbit { display: none; }
+    }
+
+    /* ---------- Hero magnetic glow ring on CTAs ---------- */
+    .btn-sheen {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-sheen::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: conic-gradient(from var(--sheen, 0deg),
+        transparent 0deg, rgba(34, 211, 238, 0.35) 40deg,
+        rgba(167, 139, 250, 0.3) 80deg, transparent 120deg);
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+      z-index: -1;
+      border-radius: inherit;
+    }
+    .btn-sheen:hover::before { opacity: 1; }
+    .btn-sheen::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%);
+      transform: translateX(-120%) skewX(-18deg);
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    .btn-sheen:hover::after {
+      transform: translateX(120%) skewX(-18deg);
+    }
+
     /* ---------- Typography / effects ---------- */
     .gradient-text {
       background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 50%, #22d3ee 100%);
@@ -224,10 +315,377 @@
     .skill-pill {
       transition: background 0.25s, color 0.25s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
         box-shadow 0.25s, border-color 0.25s;
+      cursor: pointer;
+      user-select: none;
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      line-height: 1.4;
+    }
+    .skill-pill:focus-visible {
+      outline: 2px solid rgba(34, 211, 238, 0.55);
+      outline-offset: 2px;
     }
     .skill-pill:hover {
       transform: translateY(-3px) scale(1.04);
       box-shadow: 0 8px 24px rgba(34, 211, 238, 0.12);
+    }
+    .skill-pill.is-active {
+      border-color: rgba(34, 211, 238, 0.55) !important;
+      color: #22d3ee !important;
+      background: rgba(34, 211, 238, 0.1) !important;
+      box-shadow: 0 0 28px rgba(34, 211, 238, 0.22), 0 8px 24px rgba(34, 211, 238, 0.12);
+    }
+    .skill-pill .pill-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+        rgba(34, 211, 238, 0.35), transparent 55%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .skill-pill:hover .pill-glow { opacity: 1; }
+
+    /* ========== Skills Terminal (custom HUD terminal) ========== */
+    .skills-terminal-wrap {
+      position: relative;
+      perspective: 1400px;
+    }
+    .skills-terminal-glow {
+      position: absolute;
+      inset: 8% 6% -6%;
+      background:
+        radial-gradient(ellipse at 25% 35%, rgba(34, 211, 238, 0.28), transparent 55%),
+        radial-gradient(ellipse at 75% 70%, rgba(167, 139, 250, 0.22), transparent 55%);
+      filter: blur(36px);
+      z-index: 0;
+      animation: term-glow-breathe 5.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes term-glow-breathe {
+      0%, 100% { opacity: 0.55; filter: blur(32px); }
+      50% { opacity: 1; filter: blur(48px); }
+    }
+
+    .hud-terminal {
+      position: relative;
+      z-index: 1;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(34, 211, 238, 0.22);
+      background:
+        linear-gradient(165deg, rgba(15, 23, 42, 0.92), rgba(8, 12, 22, 0.96));
+      box-shadow:
+        0 32px 80px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+        0 0 60px rgba(34, 211, 238, 0.08);
+      transform: rotateX(4deg) rotateY(-2deg);
+      animation: term-float 9s ease-in-out infinite;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease, border-color 0.4s;
+    }
+    .hud-terminal:hover {
+      transform: rotateX(0deg) rotateY(0deg) translateY(-8px) scale(1.01);
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow:
+        0 48px 110px rgba(0, 0, 0, 0.62),
+        0 0 80px rgba(34, 211, 238, 0.15);
+    }
+    @keyframes term-float {
+      0%, 100% { transform: rotateX(4deg) rotateY(-2deg) translateY(0); }
+      50% { transform: rotateX(1.8deg) rotateY(1deg) translateY(-12px); }
+    }
+
+    /* HUD top bar — different from mac traffic lights */
+    .hud-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background:
+        linear-gradient(90deg, rgba(34, 211, 238, 0.1), rgba(167, 139, 250, 0.08), rgba(34, 211, 238, 0.06));
+      border-bottom: 1px solid rgba(34, 211, 238, 0.15);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.7rem;
+    }
+    .hud-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .hud-dots i {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: rgba(34, 211, 238, 0.35);
+      display: block;
+    }
+    .hud-dots i:nth-child(1) { background: #22d3ee; box-shadow: 0 0 8px rgba(34,211,238,0.6); }
+    .hud-dots i:nth-child(2) { background: #a78bfa; box-shadow: 0 0 8px rgba(167,139,250,0.5); }
+    .hud-dots i:nth-child(3) { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.5); }
+
+    .hud-path {
+      color: #64748b;
+      letter-spacing: 0.04em;
+    }
+    .hud-path b {
+      color: #22d3ee;
+      font-weight: 600;
+    }
+    .hud-live {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #34d399;
+    }
+    .hud-live .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 10px #34d399;
+      animation: pulse-ring 1.8s ease-out infinite;
+    }
+
+    /* Body grid: terminal + sidebar */
+    .hud-body {
+      display: grid;
+      grid-template-columns: 1.35fr 0.85fr;
+      min-height: 380px;
+    }
+
+    .hud-pane {
+      padding: 18px 20px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.78rem;
+      line-height: 1.8;
+      background:
+        radial-gradient(420px 240px at 90% 0%, rgba(34, 211, 238, 0.07), transparent 60%),
+        transparent;
+    }
+
+    .hud-side {
+      border-left: 1px solid rgba(34, 211, 238, 0.12);
+      background: rgba(0, 0, 0, 0.22);
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .hud-side-label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .hud-meter {
+      display: grid;
+      gap: 6px;
+    }
+    .hud-meter-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 36px;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
+    }
+    .hud-meter-row .name { color: #94a3b8; }
+    .hud-meter-row .val {
+      text-align: right;
+      color: #22d3ee;
+      font-variant-numeric: tabular-nums;
+    }
+    .hud-meter-bar {
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(34, 211, 238, 0.1);
+      overflow: hidden;
+    }
+    .hud-meter-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22d3ee, #a78bfa);
+      width: 0%;
+      transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.45);
+    }
+
+    .hud-status-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .hud-chip {
+      padding: 4px 9px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.65rem;
+      border: 1px solid rgba(34, 211, 238, 0.18);
+      background: rgba(34, 211, 238, 0.08);
+      color: #7dd3fc;
+      transition: transform 0.25s, background 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+    .hud-chip:hover {
+      transform: translateY(-2px) scale(1.05);
+      background: rgba(34, 211, 238, 0.16);
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 6px 18px rgba(34, 211, 238, 0.15);
+    }
+
+    /* Prompt / typing */
+    .t-prompt { color: #34d399; }
+    .t-prompt .t-dir { color: #38bdf8; }
+    .t-prompt .t-git { color: #fbbf24; }
+    .t-cmd { color: #e2e8f0; }
+    .t-flag { color: #a78bfa; }
+    .t-str { color: #fbbf24; }
+    .t-out { color: #64748b; }
+    .t-ok { color: #34d399; }
+    .t-info { color: #38bdf8; }
+    .t-dim { color: #475569; }
+    .t-accent { color: #22d3ee; }
+    .t-warn { color: #fbbf24; }
+
+    .t-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1.05em;
+      background: #22d3ee;
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.7);
+      animation: blink-cursor 1s step-end infinite;
+    }
+    @keyframes blink-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Scanline overlay on terminal */
+    .hud-scan {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(34, 211, 238, 0.015) 2px,
+        rgba(34, 211, 238, 0.015) 4px
+      );
+      z-index: 3;
+      mix-blend-mode: screen;
+    }
+    .hud-sweep {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 28%;
+      background: linear-gradient(180deg,
+        transparent,
+        rgba(34, 211, 238, 0.04),
+        transparent);
+      animation: hud-sweep 6s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes hud-sweep {
+      0%, 100% { top: -30%; }
+      50% { top: 105%; }
+    }
+
+    /* Bottom status strip */
+    .hud-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0;
+      border-top: 1px solid rgba(34, 211, 238, 0.12);
+      background: rgba(8, 12, 22, 0.9);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
+    }
+    .hud-seg {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 13px;
+      color: #94a3b8;
+      position: relative;
+      white-space: nowrap;
+      transition: background 0.25s, color 0.25s;
+    }
+    .hud-seg:hover {
+      background: rgba(34, 211, 238, 0.08);
+      color: #e2e8f0;
+    }
+    .hud-seg::after {
+      content: '';
+      position: absolute;
+      right: -6px;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: inherit;
+      clip-path: polygon(0 0, 55% 50%, 0 100%, 25% 100%, 80% 50%, 25% 0);
+      opacity: 0.4;
+    }
+    .hud-seg:last-child::after { display: none; }
+    .hud-seg.ok { background: rgba(52, 211, 153, 0.1); color: #34d399; }
+    .hud-seg.info { background: rgba(56, 189, 248, 0.1); color: #38bdf8; }
+    .hud-seg.hot { background: rgba(34, 211, 238, 0.12); color: #22d3ee; }
+    .hud-seg.hot::after { display: none; }
+    .hud-seg.push {
+      margin-left: auto;
+      background: rgba(30, 41, 59, 0.85);
+      border-left: 1px solid rgba(34, 211, 238, 0.1);
+    }
+
+    /* Layout: skills + terminal */
+    .skills-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .skills-layout { grid-template-columns: 1fr; }
+      .hud-body { grid-template-columns: 1fr; }
+      .hud-side { display: none; }
+      .hud-terminal { transform: none; animation: none; }
+      .hud-terminal:hover { transform: none; }
+    }
+
+    /* Floating mini-cards beside skills */
+    .float-mini {
+      position: absolute;
+      pointer-events: none;
+      border-radius: 12px;
+      border: 1px solid rgba(34, 211, 238, 0.15);
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(12px);
+      padding: 0.55rem 0.85rem;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
+      color: #94a3b8;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+      animation: float-chip 8s ease-in-out infinite;
+      z-index: 2;
+      opacity: 0.9;
+    }
+    .float-mini b { color: #a78bfa; font-weight: 700; }
+    .float-mini.a { top: -12px; right: 8%; animation-delay: -1s; }
+    .float-mini.b { bottom: 18%; left: -18px; animation-delay: -3s; }
+
+    /* Text scramble hover */
+    .scramble {
+      display: inline-block;
+      min-width: 0;
     }
 
     .magnetic {
@@ -244,6 +702,78 @@
       transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .nav-link:hover::after { width: 100%; }
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      inset: -4px -8px;
+      border-radius: 8px;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(34, 211, 238, 0.12), transparent 65%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .nav-link:hover::before { opacity: 1; }
+
+    /* Scroll-velocity skew on major blocks */
+    .skew-on-scroll {
+      will-change: transform;
+      transform: skewX(var(--v-skew, 0deg));
+    }
+
+    /* Responsive nav polish */
+    @media (max-width: 640px) {
+      nav .max-w-5xl {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      nav .flex.items-center.gap-6 {
+        gap: 0.65rem;
+        font-size: 0.78rem;
+      }
+      nav .flex.items-center.gap-6 a {
+        padding: 0;
+      }
+      #hero .text-5xl {
+        font-size: 2.65rem;
+        line-height: 1.05;
+      }
+    }
+
+    /* Project card beam */
+    .card-3d .beam {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(115deg,
+        transparent 30%,
+        rgba(34, 211, 238, 0.08) 45%,
+        rgba(167, 139, 250, 0.1) 50%,
+        rgba(34, 211, 238, 0.08) 55%,
+        transparent 70%);
+      background-size: 220% 100%;
+      background-position: 120% 0;
+      opacity: 0;
+      transition: opacity 0.4s ease, background-position 0.8s ease;
+      pointer-events: none;
+    }
+    .card-3d:hover .beam {
+      opacity: 1;
+      background-position: -40% 0;
+    }
+
+    /* Cursor trail spark */
+    .trail-spark {
+      position: fixed;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #22d3ee;
+      pointer-events: none;
+      z-index: 9990;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+      opacity: 0;
+      transition: opacity 0.4s linear;
+    }
 
     .section-label {
       display: inline-flex;
@@ -369,6 +899,16 @@
       <div class="fx-vignette"></div>
     </div>
 
+    <!-- Floating tech chips -->
+    <div class="hero-orbit" id="hero-orbit" aria-hidden="true">
+      <div class="hero-chip sky"><b>Swift</b> · native macOS</div>
+      <div class="hero-chip violet"><b>Local AI</b> · Ollama</div>
+      <div class="hero-chip emerald"><b>Offline</b>-first</div>
+      <div class="hero-chip amber"><b>WezTerm</b> · Lua</div>
+      <div class="hero-chip rose"><b>React</b> · TypeScript</div>
+      <div class="hero-chip"><b>Python</b> · FastAPI</div>
+    </div>
+
     <div class="relative z-10 text-center px-6 max-w-3xl mx-auto" id="hero-content">
       <div class="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/80 border border-border text-xs text-muted font-mono backdrop-blur reveal">
         <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
@@ -395,12 +935,12 @@
 
       <div class="flex items-center justify-center gap-4 reveal">
         <a href="#projects"
-           class="magnetic inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-accent/10 border border-accent/20 text-accent text-sm font-medium hover:bg-accent/20 hover:shadow-[0_0_32px_rgba(34,211,238,0.25)] transition-all duration-300">
+           class="magnetic btn-sheen inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-accent/10 border border-accent/20 text-accent text-sm font-medium hover:bg-accent/20 hover:shadow-[0_0_32px_rgba(34,211,238,0.25)] transition-all duration-300">
           View Projects
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </a>
         <a href="https://github.com/M3etis" target="_blank" rel="noopener noreferrer"
-           class="magnetic inline-flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border text-slate-300 text-sm font-medium hover:border-slate-600 hover:text-white hover:shadow-[0_0_24px_rgba(148,163,184,0.12)] transition-all duration-300">
+           class="magnetic btn-sheen inline-flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border text-slate-300 text-sm font-medium hover:border-slate-600 hover:text-white hover:shadow-[0_0_24px_rgba(148,163,184,0.12)] transition-all duration-300">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
           GitHub
         </a>
@@ -463,8 +1003,9 @@
       <div class="grid md:grid-cols-3 gap-5" id="project-grid">
 
         <!-- sales-analytics -->
-        <a href="https://github.com/M3etis/Offline-Sales-Analytics" target="_blank" rel="noopener noreferrer"
+        <a href="https://m3etis.is-a.dev/Offline-Sales-Analytics/" target="_blank" rel="noopener noreferrer"
            class="card-3d group relative block bg-surface/80 border border-border rounded-xl p-6 backdrop-blur-sm overflow-hidden transition-colors duration-300 hover:border-accent/30">
+          <div class="beam" aria-hidden="true"></div>
           <div class="relative z-10">
             <div class="flex items-start justify-between mb-4">
               <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
@@ -486,8 +1027,9 @@
         </a>
 
         <!-- WezTerm-Pro-Setup -->
-        <a href="https://github.com/M3etis/WezTerm-Pro-Setup" target="_blank" rel="noopener noreferrer"
+        <a href="https://m3etis.is-a.dev/WezTerm-Pro-Setup/" target="_blank" rel="noopener noreferrer"
            class="card-3d group relative block bg-surface/80 border border-border rounded-xl p-6 backdrop-blur-sm overflow-hidden transition-colors duration-300 hover:border-accent/30">
+          <div class="beam" aria-hidden="true"></div>
           <div class="relative z-10">
             <div class="flex items-start justify-between mb-4">
               <div class="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
@@ -510,6 +1052,7 @@
         <!-- ClamKeep -->
         <a href="https://m3etis.is-a.dev/ClamKeep/" target="_blank" rel="noopener noreferrer"
            class="card-3d group relative block bg-surface/80 border border-border rounded-xl p-6 backdrop-blur-sm overflow-hidden transition-colors duration-300 hover:border-accent/30">
+          <div class="beam" aria-hidden="true"></div>
           <div class="relative z-10">
             <div class="flex items-start justify-between mb-4">
               <div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
@@ -533,55 +1076,154 @@
     </div>
   </section>
 
-  <!-- Skills Section -->
-  <section id="skills" class="py-24 px-6">
-    <div class="max-w-3xl mx-auto">
-      <h2 class="section-label text-sm font-mono text-accent tracking-widest uppercase mb-8 reveal">Skills & Tech</h2>
+  <!-- Skills & Tech — terminal combo -->
+  <section id="skills" class="py-24 px-6 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none opacity-50">
+      <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"></div>
+      <div class="absolute -left-32 top-1/3 w-[420px] h-[420px] rounded-full bg-accent/5 blur-[80px]"></div>
+      <div class="absolute -right-24 top-2/3 w-[360px] h-[360px] rounded-full bg-violet-500/8 blur-[70px]"></div>
+    </div>
 
-      <div class="space-y-8">
-        <div class="reveal">
-          <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3">Languages</h3>
-          <div class="flex flex-wrap gap-2 skill-group">
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Python</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">TypeScript</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Swift</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Lua</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">JavaScript</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">SQL</span>
+    <div class="max-w-5xl mx-auto relative">
+      <div class="mb-10">
+        <h2 class="section-label text-sm font-mono text-accent tracking-widest uppercase mb-4 reveal">Skills &amp; Tech</h2>
+        <p class="text-slate-400 max-w-xl reveal">
+          Click any skill — the terminal reacts. A live stack audit of what I ship with.
+        </p>
+      </div>
+
+      <div class="skills-layout">
+        <!-- Skill rack -->
+        <div class="space-y-7 skew-on-scroll">
+          <div class="reveal">
+            <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-accent"></span> Languages
+            </h3>
+            <div class="flex flex-wrap gap-2 skill-group" data-track="lang">
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="python" data-cmd="python --version" data-level="92">Python<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="typescript" data-cmd="tsc --version" data-level="88">TypeScript<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="swift" data-cmd="swift --version" data-level="80">Swift<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="lua" data-cmd="lua -v" data-level="74">Lua<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="javascript" data-cmd="node --version" data-level="90">JavaScript<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="sql" data-cmd="sqlite3 --version" data-level="85">SQL<span class="pill-glow"></span></button>
+            </div>
+          </div>
+
+          <div class="reveal">
+            <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span> Frontend
+            </h3>
+            <div class="flex flex-wrap gap-2 skill-group" data-track="front">
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="react" data-cmd="npm ls react" data-level="91">React<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="angular" data-cmd="ng version" data-level="78">Angular<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="vite" data-cmd="vite --version" data-level="87">Vite<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="tailwind" data-cmd="npx tailwindcss --help" data-level="89">Tailwind CSS<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="scss" data-cmd="sass --version" data-level="82">SCSS<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="rxjs" data-cmd="npm ls rxjs" data-level="76">RxJS<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="electron" data-cmd="electron --version" data-level="80">Electron<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="fsd" data-cmd="ls src/{app,shared,features,entities,widgets,pages}" data-level="84">Feature-Sliced Design<span class="pill-glow"></span></button>
+            </div>
+          </div>
+
+          <div class="reveal">
+            <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Backend &amp; Data
+            </h3>
+            <div class="flex flex-wrap gap-2 skill-group" data-track="back">
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="fastapi" data-cmd="pip show fastapi" data-level="90">FastAPI<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="postgres" data-cmd="psql --version" data-level="83">PostgreSQL<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="sqlalchemy" data-cmd="pip show sqlalchemy" data-level="81">SQLAlchemy<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="sqlite" data-cmd="sqlite3 --version" data-level="86">SQLite<span class="pill-glow"></span></button>
+            </div>
+          </div>
+
+          <div class="reveal">
+            <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> AI &amp; Infra
+            </h3>
+            <div class="flex flex-wrap gap-2 skill-group" data-track="ai">
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="ollama" data-cmd="ollama list" data-level="88">Ollama<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="local-llm" data-cmd="curl -s localhost:11434/api/tags" data-level="85">Local LLMs<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="docker" data-cmd="docker --version" data-level="82">Docker<span class="pill-glow"></span></button>
+              <button type="button" class="skill-pill relative px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent" data-skill="macos" data-cmd="sw_vers" data-level="87">macOS Development<span class="pill-glow"></span></button>
+            </div>
           </div>
         </div>
 
-        <div class="reveal">
-          <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3">Frontend</h3>
-          <div class="flex flex-wrap gap-2 skill-group">
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">React</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Angular</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Vite</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Tailwind CSS</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">SCSS</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">RxJS</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Electron</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Feature-Sliced Design</span>
-          </div>
-        </div>
+        <!-- HUD Terminal -->
+        <div class="skills-terminal-wrap reveal">
+          <div class="skills-terminal-glow" aria-hidden="true"></div>
+          <div class="float-mini a" aria-hidden="true"><b>zsh</b> · 120 fps</div>
+          <div class="float-mini b" aria-hidden="true"><b>tmux</b> leader · Ctrl+A</div>
 
-        <div class="reveal">
-          <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3">Backend & Data</h3>
-          <div class="flex flex-wrap gap-2 skill-group">
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">FastAPI</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">PostgreSQL</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">SQLAlchemy</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">SQLite</span>
-          </div>
-        </div>
+          <div class="hud-terminal" id="hud-terminal">
+            <div class="hud-scan" aria-hidden="true"></div>
+            <div class="hud-sweep" aria-hidden="true"></div>
 
-        <div class="reveal">
-          <h3 class="text-xs text-muted font-mono uppercase tracking-wider mb-3">AI & Infra</h3>
-          <div class="flex flex-wrap gap-2 skill-group">
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Ollama</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Local LLMs</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">Docker</span>
-            <span class="skill-pill px-3 py-1.5 rounded-lg text-sm bg-surface border border-border text-slate-300 hover:border-accent/40 hover:text-accent cursor-default">macOS Development</span>
+            <div class="hud-top">
+              <div class="hud-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="hud-path"><b>~/stack</b> · skills-audit</div>
+              <div class="hud-live"><span class="live-dot"></span> LIVE</div>
+            </div>
+
+            <div class="hud-body">
+              <div class="hud-pane" id="term-out" aria-live="polite">
+                <div class="t-prompt"><span class="t-dir">~/stack</span> <span class="t-git">⎇ main</span></div>
+                <div><span class="t-cmd">whoami</span></div>
+                <div class="t-out">vladislav — software developer · astana</div>
+                <div class="t-prompt" style="margin-top:0.6em"><span class="t-dir">~/stack</span> <span class="t-git">⎇ main</span></div>
+                <div id="term-live"><span class="t-cmd" id="term-cmd"></span><span class="t-cursor"></span></div>
+                <div id="term-result"></div>
+              </div>
+
+              <aside class="hud-side" aria-hidden="true">
+                <div class="hud-side-label">Stack meters</div>
+                <div class="hud-meter" id="hud-meters">
+                  <div class="hud-meter-row" data-key="lang">
+                    <span class="name">languages</span>
+                    <div class="hud-meter-bar"><div class="hud-meter-fill" data-fill="88"></div></div>
+                    <span class="val">88%</span>
+                  </div>
+                  <div class="hud-meter-row" data-key="front">
+                    <span class="name">frontend</span>
+                    <div class="hud-meter-bar"><div class="hud-meter-fill" data-fill="85"></div></div>
+                    <span class="val">85%</span>
+                  </div>
+                  <div class="hud-meter-row" data-key="back">
+                    <span class="name">backend</span>
+                    <div class="hud-meter-bar"><div class="hud-meter-fill" data-fill="86"></div></div>
+                    <span class="val">86%</span>
+                  </div>
+                  <div class="hud-meter-row" data-key="ai">
+                    <span class="name">ai / infra</span>
+                    <div class="hud-meter-bar"><div class="hud-meter-fill" data-fill="84"></div></div>
+                    <span class="val">84%</span>
+                  </div>
+                </div>
+
+                <div class="hud-side-label" style="margin-top:14px">Runtime</div>
+                <div class="hud-status-chips">
+                  <span class="hud-chip">node 20</span>
+                  <span class="hud-chip">py 3.11</span>
+                  <span class="hud-chip">swift 5.9</span>
+                  <span class="hud-chip">wezterm</span>
+                  <span class="hud-chip">ollama</span>
+                  <span class="hud-chip">docker</span>
+                </div>
+
+                <div class="hud-side-label" style="margin-top:14px">Focus</div>
+                <div class="t-dim" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;line-height:1.55">
+                  offline-first · local AI · native macOS · privacy by default
+                </div>
+              </aside>
+            </div>
+
+            <div class="hud-bottom" aria-hidden="true">
+              <div class="hud-seg ok">● connected</div>
+              <div class="hud-seg info" id="hud-focus">focus: stack</div>
+              <div class="hud-seg hot" id="hud-level">level: —</div>
+              <div class="hud-seg push">utf-8 · zsh · wezterm-pro</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1172,6 +1814,425 @@
     }
 
     /* =========================================================
+       8.5 Hero chips entrance + parallax
+       ========================================================= */
+    function initHeroChips() {
+      const chips = document.querySelectorAll('.hero-chip');
+      if (!chips.length) return;
+      if (reduced) {
+        chips.forEach((c) => c.classList.add('is-in'));
+        return;
+      }
+      chips.forEach((chip, i) => {
+        setTimeout(() => chip.classList.add('is-in'), 700 + i * 120);
+      });
+
+      if (isTouch) return;
+      const orbit = document.getElementById('hero-orbit');
+      if (!orbit) return;
+      let mx = 0, my = 0, tx = 0, ty = 0;
+      window.addEventListener('mousemove', (e) => {
+        const w = window.innerWidth || 1;
+        const h = window.innerHeight || 1;
+        mx = (e.clientX / w - 0.5) * 2;
+        my = (e.clientY / h - 0.5) * 2;
+      }, { passive: true });
+
+      (function chipLoop() {
+        tx += (mx - tx) * 0.06;
+        ty += (my - ty) * 0.06;
+        chips.forEach((chip, i) => {
+          const depth = (i % 3) + 1;
+          const ox = tx * (8 + depth * 6);
+          const oy = ty * (6 + depth * 5);
+          chip.style.translate = ox.toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
+        });
+        requestAnimationFrame(chipLoop);
+      })();
+    }
+
+    /* =========================================================
+       8.6 Skills terminal — typing + interactions
+       ========================================================= */
+    const termCmd = document.getElementById('term-cmd');
+    const termResult = document.getElementById('term-result');
+    const termLive = document.getElementById('term-live');
+    const hudFocus = document.getElementById('hud-focus');
+    const hudLevel = document.getElementById('hud-level');
+    let termBusy = false;
+    let typeTimer = null;
+
+    const demoSequence = [
+      { cmd: 'stack --audit', out: [
+        { t: 'ok', text: '✔ languages ....... 6 ready' },
+        { t: 'ok', text: '✔ frontend ........ 8 ready' },
+        { t: 'ok', text: '✔ backend ......... 4 ready' },
+        { t: 'ok', text: '✔ ai / infra ...... 4 ready' },
+        { t: 'info', text: '→ click any skill to probe it' },
+      ]},
+      { cmd: 'uname -a', out: [
+        { t: 'out', text: 'Darwin astana.local 24.0.0 arm64' },
+        { t: 'dim', text: 'wezterm-pro · offline-first · zero telemetry' },
+      ]},
+    ];
+
+    function sleep(ms) {
+      return new Promise((r) => { typeTimer = setTimeout(r, ms); });
+    }
+
+    function clearTypeTimer() {
+      if (typeTimer) { clearTimeout(typeTimer); typeTimer = null; }
+    }
+
+    async function typeText(el, text, speed) {
+      el.textContent = '';
+      for (let i = 0; i < text.length; i++) {
+        if (termBusy === false && el.dataset.abort === '1') return;
+        el.textContent += text[i];
+        await sleep(speed || 28);
+      }
+    }
+
+    function appendResult(lines) {
+      if (!termResult) return;
+      termResult.innerHTML = '';
+      lines.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.className = 't-' + (line.t || 'out');
+        div.textContent = line.text;
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(6px)';
+        div.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+        termResult.appendChild(div);
+        setTimeout(() => {
+          div.style.opacity = '1';
+          div.style.transform = 'translateY(0)';
+        }, 40 + i * 70);
+      });
+    }
+
+    async function runTermCommand(cmd, resultLines) {
+      if (!termCmd || !termResult) return;
+      clearTypeTimer();
+      termBusy = true;
+      if (termCmd.dataset) termCmd.dataset.abort = '1';
+      termResult.innerHTML = '';
+      termCmd.textContent = '';
+      await sleep(80);
+      if (termCmd.dataset) termCmd.dataset.abort = '0';
+      await typeText(termCmd, cmd, 22);
+      await sleep(180);
+      appendResult(resultLines);
+      termBusy = false;
+    }
+
+    function setMetersActive(trackKey, level) {
+      document.querySelectorAll('.hud-meter-fill').forEach((fill) => {
+        const row = fill.closest('.hud-meter-row');
+        const key = row && row.getAttribute('data-key');
+        const base = Number(fill.getAttribute('data-fill') || 0);
+        if (trackKey && key === trackKey && level) {
+          fill.style.width = Math.min(100, level) + '%';
+          const val = row.querySelector('.val');
+          if (val) val.textContent = level + '%';
+        } else if (!trackKey) {
+          fill.style.width = base + '%';
+          const val = row && row.querySelector('.val');
+          if (val) val.textContent = base + '%';
+        }
+      });
+    }
+
+    function activateSkillPill(pill) {
+      document.querySelectorAll('.skill-pill.is-active').forEach((p) => p.classList.remove('is-active'));
+      pill.classList.add('is-active');
+      const name = pill.textContent.replace(/\s+/g, ' ').trim();
+      const cmd = pill.getAttribute('data-cmd') || name.toLowerCase();
+      const level = Number(pill.getAttribute('data-level') || 80);
+      const group = pill.closest('.skill-group');
+      const track = group ? group.getAttribute('data-track') : null;
+
+      if (hudFocus) hudFocus.textContent = 'focus: ' + name.toLowerCase();
+      if (hudLevel) hudLevel.textContent = 'level: ' + level + '%';
+      setMetersActive(track, level);
+
+      // combo burst on the pill
+      if (!reduced) {
+        pill.animate([
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.12)' },
+          { transform: 'scale(1)' },
+        ], { duration: 320, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
+      }
+
+      const okLine = '✔ ' + name + ' — proficiency ' + level + '%';
+      runTermCommand(cmd, [
+        { t: 'ok', text: okLine },
+        { t: 'info', text: '→ ' + (track || 'stack') + ' channel · local runtime' },
+        { t: 'dim', text: 'picked by: stack-probe' },
+      ]);
+    }
+
+    function initSkillsTerminal() {
+      const pills = document.querySelectorAll('.skill-pill');
+      pills.forEach((pill) => {
+        pill.addEventListener('click', () => activateSkillPill(pill));
+        if (!isTouch) {
+          pill.addEventListener('mousemove', (e) => {
+            const r = pill.getBoundingClientRect();
+            pill.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+            pill.style.setProperty('--my', (e.clientY - r.top) + 'px');
+          });
+        }
+      });
+
+      // meters fill when section enters
+      const meters = document.getElementById('hud-meters');
+      if (meters && 'IntersectionObserver' in window) {
+        const mio = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            setMetersActive(null, null);
+            mio.disconnect();
+          }
+        }, { threshold: 0.3 });
+        mio.observe(meters);
+      }
+
+      // auto demo typing when terminal enters view
+      const termEl = document.getElementById('hud-terminal');
+      if (!termEl) return;
+      let demoRan = false;
+      const runDemo = async () => {
+        if (demoRan || reduced) return;
+        demoRan = true;
+        for (const step of demoSequence) {
+          await runTermCommand(step.cmd, step.out);
+          await sleep(1400);
+        }
+        // idle prompt
+        if (termCmd) termCmd.textContent = '';
+        if (termResult) termResult.innerHTML = '<div class="t-dim">ready — click a skill above</div>';
+      };
+
+      if ('IntersectionObserver' in window) {
+        const io2 = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            runDemo();
+            io2.disconnect();
+          }
+        }, { threshold: 0.35 });
+        io2.observe(termEl);
+      } else {
+        runDemo();
+      }
+
+      // hover skill highlights meter track without typing
+      pills.forEach((pill) => {
+        pill.addEventListener('mouseenter', () => {
+          const group = pill.closest('.skill-group');
+          const track = group ? group.getAttribute('data-track') : null;
+          const level = Number(pill.getAttribute('data-level') || 80);
+          if (hudFocus) hudFocus.textContent = 'hover: ' + pill.textContent.trim().toLowerCase();
+          if (hudLevel) hudLevel.textContent = 'level: ' + level + '%';
+          setMetersActive(track, level);
+        });
+      });
+    }
+
+    /* =========================================================
+       8.7 Text scramble on section labels
+       ========================================================= */
+    const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*^?#________';
+    function scrambleText(el) {
+      if (reduced || el.dataset.scrambled === '1') return;
+      el.dataset.scrambled = '1';
+      const original = el.textContent;
+      const length = original.length;
+      let frame = 0;
+      const totalFrames = Math.min(18, length * 2);
+      const queue = [];
+      for (let i = 0; i < length; i++) {
+        queue.push({
+          from: original[i],
+          to: original[i],
+          start: Math.floor(Math.random() * totalFrames * 0.5),
+          end: Math.floor(Math.random() * totalFrames * 0.5) + totalFrames * 0.5,
+        });
+      }
+      function tick() {
+        let output = '';
+        let done = 0;
+        for (const q of queue) {
+          if (frame >= q.end) {
+            done++;
+            output += q.to;
+          } else if (frame >= q.start) {
+            if (Math.random() < 0.28) {
+              output += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+            } else {
+              output += q.from;
+            }
+          } else {
+            output += q.from;
+          }
+        }
+        el.textContent = output;
+        if (done < queue.length) {
+          frame++;
+          requestAnimationFrame(tick);
+        } else {
+          el.textContent = original;
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function initScramble() {
+      if (reduced) return;
+      const labels = document.querySelectorAll('.section-label');
+      if (!('IntersectionObserver' in window)) return;
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            scrambleText(entry.target);
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      labels.forEach((l) => io.observe(l));
+    }
+
+    /* =========================================================
+       8.8 Cursor trail sparks
+       ========================================================= */
+    function initTrail() {
+      if (isTouch || reduced) return;
+      const sparks = [];
+      const maxSparks = 14;
+      for (let i = 0; i < maxSparks; i++) {
+        const s = document.createElement('div');
+        s.className = 'trail-spark';
+        document.body.appendChild(s);
+        sparks.push({ el: s, x: 0, y: 0, life: 0 });
+      }
+      let idx = 0;
+      let lastSpawn = 0;
+      window.addEventListener('mousemove', (e) => {
+        const now = performance.now();
+        if (now - lastSpawn < 32) return;
+        lastSpawn = now;
+        const s = sparks[idx % maxSparks];
+        idx++;
+        s.x = e.clientX;
+        s.y = e.clientY;
+        s.life = 1;
+        s.el.style.left = s.x + 'px';
+        s.el.style.top = s.y + 'px';
+        s.el.style.opacity = '0.85';
+        s.el.style.transform = 'scale(1)';
+        requestAnimationFrame(() => {
+          s.el.style.opacity = '0';
+          s.el.style.transform = 'scale(0.2)';
+        });
+      }, { passive: true });
+    }
+
+    /* =========================================================
+       8.9 Scroll-velocity skew — CSS variable, no transform fights
+       ========================================================= */
+    function initScrollSkew() {
+      if (reduced) return;
+      let lastY = window.scrollY;
+      let velocity = 0;
+      let skew = 0;
+
+      (function skewLoop() {
+        const y = window.scrollY;
+        velocity = y - lastY;
+        lastY = y;
+        const target = Math.max(-4, Math.min(4, velocity * 0.08));
+        skew += (target - skew) * 0.1;
+        root.style.setProperty('--v-skew', skew.toFixed(2) + 'deg');
+        requestAnimationFrame(skewLoop);
+      })();
+    }
+
+    /* =========================================================
+       8.10 Nav magnetic + link spotlight
+       ========================================================= */
+    function initNavFX() {
+      if (isTouch) return;
+      document.querySelectorAll('.nav-link').forEach((link) => {
+        link.addEventListener('mousemove', (e) => {
+          const r = link.getBoundingClientRect();
+          link.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+          link.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        });
+      });
+    }
+
+    /* =========================================================
+       8.11 Keyboard: press G to scroll to skills terminal
+       ========================================================= */
+    function initKeys() {
+      window.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const tag = (e.target && e.target.tagName) || '';
+        if (/input|textarea|select/i.test(tag)) return;
+        if (e.key === 'g' || e.key === 'G') {
+          const skills = document.getElementById('skills');
+          if (skills) {
+            skills.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+            flashCursor();
+          }
+        }
+      });
+    }
+
+    function flashCursor() {
+      if (cRing) {
+        cRing.classList.add('is-hover');
+        setTimeout(() => cRing.classList.remove('is-hover'), 450);
+      }
+    }
+
+    /* =========================================================
+       8.12 Button ripple
+       ========================================================= */
+    function initRipples() {
+      document.querySelectorAll('.btn-sheen, .magnetic').forEach((btn) => {
+        btn.addEventListener('pointerdown', (e) => {
+          const r = btn.getBoundingClientRect();
+          const span = document.createElement('span');
+          const size = Math.max(r.width, r.height) * 2;
+          span.style.cssText = [
+            'position:absolute',
+            'border-radius:50%',
+            'pointer-events:none',
+            'background:radial-gradient(circle, rgba(34,211,238,0.35), transparent 65%)',
+            'width:' + size + 'px',
+            'height:' + size + 'px',
+            'left:' + (e.clientX - r.left - size / 2) + 'px',
+            'top:' + (e.clientY - r.top - size / 2) + 'px',
+            'transform:scale(0)',
+            'opacity:0.7',
+            'transition:transform 0.55s cubic-bezier(0.22,1,0.36,1), opacity 0.55s',
+            'z-index:0',
+          ].join(';');
+          const style = window.getComputedStyle(btn);
+          if (style.position === 'static') btn.style.position = 'relative';
+          if (style.overflow !== 'hidden') btn.style.overflow = 'hidden';
+          btn.appendChild(span);
+          requestAnimationFrame(() => {
+            span.style.transform = 'scale(1)';
+            span.style.opacity = '0';
+          });
+          setTimeout(() => span.remove(), 600);
+        });
+      });
+    }
+
+    /* =========================================================
        9. Boot
        ========================================================= */
     function frame(t) {
@@ -1221,6 +2282,14 @@
     prepareLitText();
     bindMagnetic();
     bindCards();
+    initHeroChips();
+    initSkillsTerminal();
+    initScramble();
+    initRipples();
+    initTrail();
+    initScrollSkew();
+    initNavFX();
+    initKeys();
     initGSAP();
     if (!isTouch) requestAnimationFrame(cursorLoop);
     if (!reduced) requestAnimationFrame(frame);
