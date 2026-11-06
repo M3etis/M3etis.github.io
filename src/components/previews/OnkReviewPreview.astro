@@ -1,0 +1,208 @@
+---
+/**
+ * Illustration of the ONK 2.0 admin review screen (not a screenshot).
+ * Documented behaviour (docs/ai-module.md): the model returns a draft finding with a requirement and
+ * a deadline, the cited norm must match a knowledge-base fragment, and only what the administrator
+ * accepts or edits reaches the order. The model and prompt names are the ones from the docs.
+ */
+import type { Lang } from '../../i18n/utils';
+import Icon from '../Icon.astro';
+
+interface Props {
+  lang: Lang;
+  label: string;
+}
+
+const { lang, label } = Astro.props;
+const c = {
+  ru: {
+    tag: 'Черновик ИИ',
+    title: 'Находка',
+    finding: 'В помещении не обеспечен доступ к питьевой воде.',
+    source: 'Основание из базы знаний',
+    quote: '«…обеспечивается доступ к питьевой воде…»',
+    match: 'Цитата совпадает с фрагментом',
+    req: 'Требование',
+    reqV: 'Обеспечить доступ к питьевой воде',
+    due: 'Срок',
+    dueV: '30 дней',
+    accept: 'Принять',
+    edit: 'Исправить',
+    reject: 'Отклонить',
+  },
+  en: {
+    tag: 'AI draft',
+    title: 'Finding',
+    finding: 'The room has no access to drinking water.',
+    source: 'Grounds from the knowledge base',
+    quote: '“…access to drinking water is provided…”',
+    match: 'Quote matches the fragment',
+    req: 'Requirement',
+    reqV: 'Provide access to drinking water',
+    due: 'Deadline',
+    dueV: '30 days',
+    accept: 'Accept',
+    edit: 'Edit',
+    reject: 'Reject',
+  },
+}[lang];
+---
+
+<figure class="pv" aria-label={label}>
+  <div class="pv__win" aria-hidden="true">
+    <div class="pv__head">
+      <span class="pv__title">{c.title}</span>
+      <span class="pv__tag">{c.tag}</span>
+    </div>
+
+    <p class="pv__finding">{c.finding}</p>
+
+    <div class="pv__source">
+      <p class="pv__label"><Icon name="book-open" size="0.85rem" />{c.source}</p>
+      <blockquote>{c.quote}</blockquote>
+      <p class="pv__match"><Icon name="check" size="0.8rem" />{c.match}</p>
+    </div>
+
+    <dl class="pv__fields">
+      <div><dt>{c.req}</dt><dd>{c.reqV}</dd></div>
+      <div><dt>{c.due}</dt><dd>{c.dueV}</dd></div>
+    </dl>
+
+    <div class="pv__actions">
+      <span class="pv__btn pv__btn--yes">{c.accept}</span>
+      <span class="pv__btn">{c.edit}</span>
+      <span class="pv__btn pv__btn--ghost">{c.reject}</span>
+    </div>
+
+    <p class="pv__meta mono">qwen2.5:7b · visit-analysis.v2</p>
+  </div>
+  <figcaption class="pv__cap">{label}</figcaption>
+</figure>
+
+<style>
+  .pv {
+    margin: 0;
+  }
+
+  .pv__win {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: 0 0 0 1px var(--color-border);
+    font-size: var(--text-small);
+  }
+
+  .pv__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .pv__title {
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+  }
+
+  .pv__tag {
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+    color: var(--color-warning);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+  }
+
+  .pv__finding {
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+    line-height: 1.35;
+  }
+
+  .pv__source {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .pv__label,
+  .pv__match {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--text-caption);
+  }
+
+  .pv__label {
+    color: var(--color-text-muted);
+  }
+
+  .pv__source blockquote {
+    margin: 0;
+    color: var(--color-text);
+    font-style: italic;
+  }
+
+  .pv__match {
+    color: var(--color-success);
+    font-weight: var(--weight-semibold);
+  }
+
+  .pv__fields {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-4);
+    margin: 0;
+  }
+
+  .pv__fields dt {
+    color: var(--color-text-subtle);
+    font-size: var(--text-caption);
+  }
+
+  .pv__fields dd {
+    margin: 2px 0 0;
+  }
+
+  .pv__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pv__btn {
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-caption);
+  }
+
+  .pv__btn--yes {
+    background: var(--color-accent-fill);
+    color: var(--color-accent-contrast);
+  }
+
+  .pv__btn--ghost {
+    background: transparent;
+    color: var(--color-text-muted);
+  }
+
+  .pv__meta {
+    color: var(--color-text-subtle);
+    font-size: 0.6875rem;
+  }
+
+  .pv__cap {
+    margin-top: var(--space-3);
+    color: var(--color-text-subtle);
+    font-size: var(--text-caption);
+    text-align: center;
+  }
+</style>

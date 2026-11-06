@@ -1,0 +1,326 @@
+---
+/**
+ * Print-first résumé built from the same data as the site.
+ * Unconfirmed facts (TODO markers) are left out, so the PDF never ships placeholders.
+ * Phone number and date of birth are intentionally never included.
+ */
+import '../styles/tokens.css';
+import '../styles/base.css';
+import { earlier, education, formatMonth, jobs, sideProjects } from '../data/experience';
+import { cases, tools } from '../data/projects';
+import { site } from '../data/site';
+import { skillGroups } from '../data/skills';
+import type { Lang } from '../i18n/utils';
+import { isTodo, pathFor } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+const L = {
+  ru: { summary: 'Профиль', skills: 'Навыки', exp: 'Опыт работы', projects: 'Проекты', edu: 'Образование', site: 'Сайт', present: 'н. в.', languages: 'Языки: русский — родной, английский — A2', print: 'Сохранить в PDF' },
+  en: { summary: 'Profile', skills: 'Skills', exp: 'Experience', projects: 'Projects', edu: 'Education', site: 'Website', present: 'present', languages: 'Languages: Russian — native, English — A2', print: 'Save as PDF' },
+}[lang];
+const ok = (s: string) => !isTodo(s);
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{t.hero.name} — CV</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body data-theme-print>
+    <main class="cv">
+      <header class="cv__head">
+        <div>
+          <h1>{t.hero.name}</h1>
+          <p class="cv__role accent">{t.hero.role}</p>
+        </div>
+        <ul class="cv__contacts" role="list">
+          <li>{t.hero.location}</li>
+          {!isTodo(t.hero.availability) && <li class="accent">{t.hero.availability}</li>}
+          <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+          <li><a href={site.telegram}>t.me/{site.telegramHandle}</a></li>
+          <li><a href={site.github}>github.com/{site.githubHandle}</a></li>
+          <li><a href={new URL(pathFor(lang), site.url).href}>{site.url.replace('https://', '')}</a></li>
+        </ul>
+      </header>
+
+      <section>
+        <h2>{L.summary}</h2>
+        <p class="cv__lead">{t.hero.title} {t.hero.subtitle}</p>
+        <p>{t.hero.lead}</p>
+      </section>
+
+      <section>
+        <h2>{L.skills}</h2>
+        <dl class="cv__skills">
+          {
+            skillGroups.map((g) => (
+              <div>
+                <dt>{g.title}</dt>
+                <dd>
+                  {g.key.length > 0 && <strong>{g.key.map((k) => k[lang]).join(', ')}{', '}</strong>}
+                  {g.rest.join(', ')}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+
+      <section>
+        <h2>{L.exp}</h2>
+        {
+          jobs.map((j) => (
+            <article class="cv__job">
+              <div class="cv__job-head">
+                <h3>
+                  {j.role[lang]} — {j.org[lang]}
+                </h3>
+                <span class="cv__period">
+                  {formatMonth(j.start, lang)} — {j.end ? formatMonth(j.end, lang) : L.present}
+                </span>
+              </div>
+              {j.place && <p class="cv__place">{j.place[lang]}</p>}
+              {j.points.some((p) => ok(p[lang])) && (
+                <ul>
+                  {j.points.filter((p) => ok(p[lang])).map((p) => <li>{p[lang]}</li>)}
+                </ul>
+              )}
+            </article>
+          ))
+        }
+        <p class="cv__earlier">{sideProjects[lang]}</p>
+        <p class="cv__earlier">{earlier[lang]}</p>
+      </section>
+
+      <section>
+        <h2>{L.projects}</h2>
+        {
+          cases.map((p) => (
+            <article class="cv__project">
+              <h3>
+                {p.title} <span class="cv__kicker">— {p.kicker[lang]}</span>
+              </h3>
+              <p>{p.solution[lang]}</p>
+              <p><b>AI UX:</b> {p.aiux.slice(0, 3).map((x) => x[lang]).join('; ')}.</p>
+              <p>{p.results.filter((r) => ok(r[lang])).map((r) => r[lang]).join('. ')}.</p>
+              <p class="cv__stack">
+                {[...p.stack, ...p.links.map((l) => l.href.replace('https://', '').replace(/\/$/, ''))].join(' · ')}
+              </p>
+            </article>
+          ))
+        }
+        {
+          tools.map((p) => (
+            <article class="cv__project">
+              <h3>
+                {p.title} <span class="cv__kicker">— {p.kicker[lang]}</span>
+              </h3>
+              <p class="cv__stack">
+                {[...p.stack, ...p.links.filter((l) => l.kind !== 'releases').map((l) => l.href.replace('https://', '').replace(/\/$/, ''))].join(' · ')}
+              </p>
+            </article>
+          ))
+        }
+      </section>
+
+      <section>
+        <h2>{L.edu}</h2>
+        <p>{education[lang]}</p>
+        <p>{L.languages}</p>
+      </section>
+    </main>
+
+    <button class="cv__print no-print" type="button" onclick="window.print()">{L.print}</button>
+  </body>
+</html>
+
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 15mm;
+  }
+
+  :global(body) {
+    background: #fff;
+    color: #1b1a17;
+    font-size: 10pt;
+    line-height: 1.45;
+    color-scheme: light;
+  }
+
+  .cv {
+    max-width: 180mm;
+    margin: 0 auto;
+    padding: 12mm 0;
+  }
+
+  @media print {
+    .cv {
+      padding: 0;
+    }
+  }
+
+  .cv__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4mm 10mm;
+    padding-bottom: 4mm;
+    border-bottom: 1.5px solid #1b1a17;
+  }
+
+  h1 {
+    font-size: 24pt;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  .cv__role {
+    margin-top: 1.5mm;
+    font-size: 11pt;
+    font-weight: 500;
+  }
+
+  .accent {
+    color: #0058c7;
+  }
+
+  .cv__contacts {
+    display: grid;
+    gap: 0.5mm;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    text-align: right;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  section {
+    margin-top: 5mm;
+  }
+
+  h2 {
+    break-after: avoid;
+    margin-bottom: 2mm;
+    color: #0058c7;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  h3 {
+    font-size: 10.5pt;
+    letter-spacing: -0.01em;
+  }
+
+  p + p {
+    margin-top: 1.5mm;
+  }
+
+  .cv__lead {
+    font-weight: 500;
+  }
+
+  .cv__core {
+    font-weight: 600;
+  }
+
+  .cv__skills {
+    display: grid;
+    gap: 1mm;
+    margin-top: 2mm;
+  }
+
+  .cv__skills div {
+    display: grid;
+    grid-template-columns: 42mm 1fr;
+    gap: 3mm;
+  }
+
+  .cv__skills dt {
+    color: #4f4b44;
+  }
+
+  .cv__skills dd {
+    margin: 0;
+  }
+
+  .cv__job,
+  .cv__project {
+    margin-top: 3mm;
+    break-inside: avoid;
+  }
+
+  .cv__job-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 4mm;
+    align-items: baseline;
+  }
+
+  .cv__period,
+  .cv__stack {
+    flex: none;
+    color: #4f4b44;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+  }
+
+  .cv__place,
+  .cv__kicker {
+    color: #4f4b44;
+    font-weight: 400;
+  }
+
+  ul {
+    margin-top: 1mm;
+    padding-inline-start: 4.5mm;
+  }
+
+  .cv__earlier {
+    margin-top: 3mm;
+    color: #4f4b44;
+  }
+
+  .cv__print {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    min-height: 44px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: #c2470f;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  @media (max-width: 40rem) {
+    .cv {
+      padding: 16px;
+    }
+
+    .cv__contacts {
+      text-align: left;
+    }
+
+    .cv__skills div {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>

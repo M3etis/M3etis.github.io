@@ -1,0 +1,115 @@
+---
+import SectionHeader from '../components/SectionHeader.astro';
+import SkillChip from '../components/SkillChip.astro';
+import { skillGroups } from '../data/skills';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang].skills;
+---
+
+<section class="section" aria-labelledby="skills">
+  <div class="container">
+    <SectionHeader id="skills" eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
+
+    <ul class="groups" role="list">
+      {
+        skillGroups.map((g) => (
+          <li class="group" data-reveal="card">
+            <h3 class="group__title">{g.title}</h3>
+            <p class="group__context">{g.context[lang]}</p>
+            {g.key.length > 0 && (
+              <p class="group__key">
+                {g.key.map((k, i) => (
+                  <>
+                    {i > 0 && <span class="group__sep" aria-hidden="true">·</span>}
+                    <strong>{k[lang]}</strong>
+                  </>
+                ))}
+              </p>
+            )}
+            <ul class="group__rest" role="list">
+              {g.rest.map((s) => (
+                <li>
+                  <SkillChip>{s}</SkillChip>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .groups {
+    display: grid;
+    gap: var(--grid-gap);
+    margin: 0;
+  }
+
+  @media (min-width: 52rem) {
+    .groups {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .group {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(var(--space-6), 3vw, var(--space-8));
+    border-radius: var(--radius-xl);
+    background: var(--color-bg-alt);
+  }
+
+  .group__title {
+    font-size: var(--text-h3);
+    letter-spacing: var(--tracking-h3);
+  }
+
+  .group__context {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-small);
+  }
+
+  .group__key {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-2);
+    margin-top: var(--space-6);
+    font-size: var(--text-lead);
+    letter-spacing: -0.01em;
+  }
+
+  .group__key strong {
+    font-weight: var(--weight-semibold);
+  }
+
+  .group__sep {
+    color: var(--color-text-subtle);
+  }
+
+  .group__rest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+
+  .group__rest :global(.chip) {
+    background: var(--color-surface);
+  }
+
+  /* Tooling has no headline items: give the chips the space instead. */
+  .group__context + .group__rest {
+    margin-top: var(--space-6);
+  }
+</style>

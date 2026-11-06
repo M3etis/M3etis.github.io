@@ -1,0 +1,116 @@
+---
+import ContactLink from '../components/ContactLink.astro';
+import CopyButton from '../components/CopyButton.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import Todo from '../components/Todo.astro';
+import { site } from '../data/site';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+const c = t.contact;
+---
+
+<section class="section" aria-labelledby="contact">
+  <div class="container">
+    <div class="contact-grid">
+      <div>
+        <SectionHeader id="contact" eyebrow={c.eyebrow} title={c.title} intro={c.text} />
+        <p class="contact-availability" data-reveal>
+          <span class="contact-availability__dot" aria-hidden="true"></span>
+          <Todo text={c.availability} />
+        </p>
+      </div>
+
+      <ul class="contact-list" role="list">
+        <li class="contact-list__email" data-reveal>
+          <ContactLink icon="mail" label={c.email} value={site.email} href={`mailto:${site.email}`} />
+          <CopyButton value={site.email} label={t.a11y.copyEmail} copiedLabel={t.a11y.copied} />
+        </li>
+        <li data-reveal>
+          <ContactLink icon="telegram" label={c.telegram} value={`@${site.telegramHandle}`} href={site.telegram} />
+        </li>
+        <li data-reveal>
+          <ContactLink icon="github" label={c.github} value={`github.com/${site.githubHandle}`} href={site.github} />
+        </li>
+        <li data-reveal>
+          <ContactLink
+            icon="file-text"
+            label={c.cv}
+            value={lang === 'ru' ? 'vladislav-li-cv-ru.pdf' : 'vladislav-li-cv-en.pdf'}
+            href={site.cv[lang]}
+            download
+          />
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact-grid {
+    display: grid;
+    gap: var(--space-8) var(--space-16);
+  }
+
+  @media (min-width: 64rem) {
+    .contact-grid {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+  }
+
+  .contact-availability {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+    max-width: 34rem;
+    margin-top: calc(-1 * var(--space-8));
+    color: var(--color-text-muted);
+  }
+
+  .contact-availability__dot {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-success);
+    transform: translateY(-0.1em);
+  }
+
+  .contact-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .contact-list {
+      margin-top: var(--space-10);
+    }
+  }
+
+  .contact-list__email {
+    display: flex;
+    gap: var(--space-2);
+    align-items: stretch;
+  }
+
+  .contact-list__email > :global(:first-child) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .contact-list__email > :global(.copy-btn) {
+    width: 4.25rem;
+    height: auto;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-alt);
+  }
+</style>

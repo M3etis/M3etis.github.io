@@ -1,0 +1,140 @@
+---
+/**
+ * Offline Sales Analytics as a pipeline (from the README): question → intent → SQL from the LLM →
+ * validation → DuckDB → answer. The hero already shows the chat UI; here the card shows how it works.
+ * Steps light up one after another when the card is revealed.
+ */
+import type { Lang } from '../../i18n/utils';
+import Icon, { type IconName } from '../Icon.astro';
+
+interface Props {
+  lang: Lang;
+  label: string;
+}
+
+const { lang, label } = Astro.props;
+type Step = { icon: IconName; t: string; d: string };
+const all: Record<Lang, Step[]> = {
+  ru: [
+    { icon: 'mic', t: 'Вопрос', d: 'текстом или голосом' },
+    { icon: 'inbox', t: 'Интент', d: 'сравнение, топ, KPI…' },
+    { icon: 'code', t: 'SQL от LLM', d: 'Qwen 2.5 в Ollama' },
+    { icon: 'shield-check', t: 'Проверка', d: 'только SELECT и WITH' },
+    { icon: 'package', t: 'DuckDB', d: 'локальные данные' },
+    { icon: 'check', t: 'Ответ', d: 'текст, график, голос' },
+  ],
+  en: [
+    { icon: 'mic', t: 'Question', d: 'typed or spoken' },
+    { icon: 'inbox', t: 'Intent', d: 'comparison, top, KPI…' },
+    { icon: 'code', t: 'SQL by the LLM', d: 'Qwen 2.5 on Ollama' },
+    { icon: 'shield-check', t: 'Validation', d: 'SELECT and WITH only' },
+    { icon: 'package', t: 'DuckDB', d: 'local data' },
+    { icon: 'check', t: 'Answer', d: 'text, chart, voice' },
+  ],
+};
+const steps = all[lang];
+---
+
+<figure class="flow" aria-label={label}>
+  <ol class="flow__list" role="list">
+    {
+      steps.map((s, i) => (
+        <li class="flow__step" style={`--s: ${i}`}>
+          <span class="flow__icon" aria-hidden="true">
+            <Icon name={s.icon} size="1.05rem" />
+          </span>
+          <span class="flow__t">{s.t}</span>
+          <span class="flow__d">{s.d}</span>
+        </li>
+      ))
+    }
+  </ol>
+  <figcaption class="flow__cap">{label}</figcaption>
+</figure>
+
+<style>
+  .flow {
+    margin: 0;
+  }
+
+  .flow__list {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: 0 0 0 1px var(--color-border);
+  }
+
+  .flow__step {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .flow__icon {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  .flow__step:last-child .flow__icon {
+    background: var(--color-accent-fill);
+    color: #fff;
+  }
+
+  .flow__t {
+    font-weight: var(--weight-semibold);
+    line-height: 1.3;
+  }
+
+  .flow__d {
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+    line-height: 1.35;
+  }
+
+  .flow__cap {
+    margin-top: var(--space-3);
+    color: var(--color-text-subtle);
+    font-size: var(--text-caption);
+    text-align: center;
+  }
+
+  /* Steps light up in order while the card lands (only while the card is being revealed). */
+  :global(.js) :global([data-reveal]) .flow__step {
+    opacity: 0.25;
+    transform: translateY(8px);
+    transition:
+      opacity 500ms var(--ease-expo),
+      transform 600ms var(--ease-expo);
+    transition-delay: calc(350ms + var(--s) * 120ms);
+  }
+
+  :global(.js) :global([data-reveal].is-visible) .flow__step {
+    opacity: 1;
+    transform: none;
+  }
+
+  :global(.js) :global([data-reveal]) .flow__icon {
+    transition: transform 450ms var(--ease-spring);
+    transition-delay: calc(400ms + var(--s) * 120ms);
+    transform: scale(0.6);
+  }
+
+  :global(.js) :global([data-reveal].is-visible) .flow__icon {
+    transform: none;
+  }
+</style>

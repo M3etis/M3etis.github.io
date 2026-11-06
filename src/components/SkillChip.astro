@@ -1,0 +1,30 @@
+---
+/** Tag for technologies. `key` — core technology, slightly stronger. */
+interface Props {
+  emphasis?: 'key' | 'default';
+  class?: string;
+}
+
+const { emphasis = 'default', class: className } = Astro.props;
+---
+
+<span class:list={['chip', `chip--${emphasis}`, className]}><slot /></span>
+
+<style>
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-full);
+    background: var(--color-surface-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+    line-height: 1.4;
+  }
+
+  .chip--key {
+    background: var(--color-accent-soft);
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+  }
+</style>

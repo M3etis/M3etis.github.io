@@ -2,4 +2,8 @@
 output/
 .DS_Store
 node_modules/
-package-lock.json
+dist/
+.astro/
+.claude/
+# local design drafts and archived components — not published
+design/

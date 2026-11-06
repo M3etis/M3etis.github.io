@@ -1,0 +1,464 @@
+---
+/**
+ * Small looping pictograms for the "What I do" cards (decorative).
+ * They play only while visible ([data-loop] → .is-playing, set in Base.astro) and only with JS;
+ * without JS or with reduced motion they show their finished state.
+ *
+ * auto   — a document becomes a verified result
+ * agents — data, documents and devices feed one model (hub and spokes)
+ * ui     — a reply streams in and gets a thumbs-up
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  kind: 'auto' | 'agents' | 'ui';
+}
+
+const { kind } = Astro.props;
+---
+
+<div class:list={['viz', `viz--${kind}`]} data-loop aria-hidden="true">
+  {
+    kind === 'auto' && (
+      <>
+        <span class="viz-doc">
+          <i />
+          <i />
+          <i />
+        </span>
+        <span class="viz-arrow" />
+        <span class="viz-ok">
+          <Icon name="check" size="1.1em" />
+        </span>
+      </>
+    )
+  }
+  {
+    kind === 'agents' && (
+      <>
+        <span class="viz-line viz-line--1" />
+        <span class="viz-line viz-line--2" />
+        <span class="viz-line viz-line--3" />
+        <span class="viz-node viz-node--1" />
+        <span class="viz-node viz-node--2" />
+        <span class="viz-node viz-node--3" />
+        <span class="viz-hub" />
+        <span class="viz-pulse viz-pulse--1" />
+        <span class="viz-pulse viz-pulse--2" />
+        <span class="viz-pulse viz-pulse--3" />
+      </>
+    )
+  }
+  {
+    kind === 'ui' && (
+      <>
+        <span class="viz-q" />
+        <span class="viz-reply">
+          <span class="viz-dots">
+            <i />
+            <i />
+            <i />
+          </span>
+          <i class="viz-text viz-text--1" />
+          <i class="viz-text viz-text--2" />
+        </span>
+        <span class="viz-like">
+          <Icon name="thumbs-up" size="0.85em" />
+        </span>
+      </>
+    )
+  }
+</div>
+
+<style>
+  /* Decorative: a fixed 16px base keeps the drawing the same size when the user enlarges text. */
+  .viz {
+    position: relative;
+    width: 11em;
+    height: 4.5em;
+    font-size: 16px;
+  }
+
+  /* Loops are defined under .js and paused until the card is on screen. */
+  :global(.js) .viz :global(*) {
+    animation-play-state: paused;
+  }
+
+  :global(.js) .viz.is-playing :global(*) {
+    animation-play-state: running;
+  }
+
+  /* ---------- auto: document → verified ---------- */
+  .viz-doc {
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    display: grid;
+    gap: 6px;
+    align-content: center;
+    width: 3.25em;
+    height: 3.5em;
+    padding: 0 0.6em;
+    border-radius: 10px;
+    background: var(--color-bg-alt);
+  }
+
+  .viz-doc i {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-text-subtle);
+    transform-origin: left;
+  }
+
+  .viz-doc i:nth-child(2) {
+    width: 75%;
+  }
+
+  .viz-doc i:nth-child(3) {
+    width: 55%;
+  }
+
+  .viz-arrow {
+    position: absolute;
+    left: 4em;
+    top: 2.2em;
+    width: 3em;
+    height: 2px;
+    border-radius: 1px;
+    background: linear-gradient(90deg, var(--color-border-strong) 50%, transparent 0) 0 0 / 8px 2px repeat-x;
+  }
+
+  .viz-ok {
+    position: absolute;
+    left: 7.5em;
+    top: 0.85em;
+    display: grid;
+    place-items: center;
+    width: 2.75em;
+    height: 2.75em;
+    border-radius: 50%;
+    background: var(--color-success);
+    color: #fff;
+  }
+
+  :global(.js) .viz--auto .viz-doc i {
+    animation: viz-line 3.2s var(--ease-expo) infinite both;
+  }
+
+  :global(.js) .viz--auto .viz-doc i:nth-child(2) {
+    animation-delay: 120ms;
+  }
+
+  :global(.js) .viz--auto .viz-doc i:nth-child(3) {
+    animation-delay: 240ms;
+  }
+
+  :global(.js) .viz--auto .viz-arrow {
+    animation: viz-dash 3.2s linear infinite both;
+  }
+
+  :global(.js) .viz--auto .viz-ok {
+    animation: viz-ok 3.2s var(--ease-spring) infinite both;
+  }
+
+  @keyframes viz-line {
+    0% {
+      transform: scaleX(0);
+    }
+    18%,
+    88% {
+      transform: scaleX(1);
+    }
+    100% {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes viz-dash {
+    0%,
+    25% {
+      background-position: 0 0;
+      opacity: 0.4;
+    }
+    50% {
+      background-position: 24px 0;
+      opacity: 1;
+    }
+    88% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes viz-ok {
+    0%,
+    45% {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+    58%,
+    88% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+  }
+
+  /* ---------- agents: hub and spokes ---------- */
+  .viz-node,
+  .viz-hub {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  .viz-node {
+    width: 1em;
+    height: 1em;
+    background: var(--color-bg-alt);
+    box-shadow: inset 0 0 0 2px var(--color-border-strong);
+  }
+
+  .viz-node--1 {
+    left: 0.25em;
+    top: 1.75em;
+  }
+
+  .viz-node--2 {
+    left: 5em;
+    top: 0;
+  }
+
+  .viz-node--3 {
+    left: 5em;
+    top: 3.5em;
+  }
+
+  .viz-hub {
+    left: 8.5em;
+    top: 1.25em;
+    width: 2em;
+    height: 2em;
+    background: var(--color-accent-fill);
+    box-shadow: 0 0 0 6px var(--color-accent-soft);
+  }
+
+  .viz-line {
+    position: absolute;
+    height: 2px;
+    background: var(--color-border);
+    transform-origin: left center;
+  }
+
+  /* lines from each node centre to the hub centre (9.5em, 2.25em) */
+  .viz-line--1 {
+    left: 0.75em;
+    top: 2.25em;
+    width: 8.75em;
+  }
+
+  .viz-line--2 {
+    left: 5.5em;
+    top: 0.5em;
+    width: 4.4em;
+    transform: rotate(23.6deg);
+  }
+
+  .viz-line--3 {
+    left: 5.5em;
+    top: 4em;
+    width: 4.4em;
+    transform: rotate(-23.6deg);
+  }
+
+  .viz-pulse {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--color-accent);
+    opacity: 0;
+  }
+
+  .viz-pulse--1 {
+    --fx: 0.5em;
+    --fy: 2em;
+  }
+
+  .viz-pulse--2 {
+    --fx: 5.25em;
+    --fy: 0.25em;
+  }
+
+  .viz-pulse--3 {
+    --fx: 5.25em;
+    --fy: 3.75em;
+  }
+
+  :global(.js) .viz--agents .viz-pulse {
+    animation: viz-travel 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+
+  :global(.js) .viz--agents .viz-pulse--2 {
+    animation-delay: 0.8s;
+  }
+
+  :global(.js) .viz--agents .viz-pulse--3 {
+    animation-delay: 1.6s;
+  }
+
+  :global(.js) .viz--agents .viz-hub {
+    animation: viz-hub 0.8s var(--ease-out) infinite;
+  }
+
+  @keyframes viz-travel {
+    0% {
+      transform: translate(var(--fx), var(--fy));
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    55% {
+      transform: translate(9.25em, 2em);
+      opacity: 1;
+    }
+    62%,
+    100% {
+      transform: translate(9.25em, 2em);
+      opacity: 0;
+    }
+  }
+
+  @keyframes viz-hub {
+    0%,
+    100% {
+      box-shadow: 0 0 0 6px var(--color-accent-soft);
+    }
+    50% {
+      box-shadow: 0 0 0 9px var(--color-accent-soft);
+    }
+  }
+
+  /* ---------- ui: streamed reply + like ---------- */
+  .viz-q {
+    position: absolute;
+    right: 1.5em;
+    top: 0;
+    width: 4em;
+    height: 1.25em;
+    border-radius: 10px 10px 3px 10px;
+    background: var(--color-accent-fill);
+  }
+
+  .viz-reply {
+    position: absolute;
+    left: 0;
+    top: 1.75em;
+    display: grid;
+    gap: 6px;
+    align-content: center;
+    width: 8em;
+    height: 2.5em;
+    padding: 0 0.7em;
+    border-radius: 10px 10px 10px 3px;
+    background: var(--color-bg-alt);
+  }
+
+  .viz-dots {
+    position: absolute;
+    left: 0.7em;
+    top: 50%;
+    display: flex;
+    gap: 4px;
+    transform: translateY(-50%);
+    opacity: 0;
+  }
+
+  .viz-dots i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-text-subtle);
+  }
+
+  .viz-text {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-text-muted);
+    transform-origin: left;
+  }
+
+  .viz-text--2 {
+    width: 60%;
+  }
+
+  .viz-like {
+    position: absolute;
+    left: 8.6em;
+    top: 2.25em;
+    display: grid;
+    place-items: center;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 50%;
+    background: var(--color-accent-fill);
+    color: #fff;
+  }
+
+  :global(.js) .viz--ui .viz-dots {
+    animation: viz-dots 3.4s linear infinite both;
+  }
+
+  :global(.js) .viz--ui .viz-text {
+    animation: viz-type 3.4s var(--ease-expo) infinite both;
+  }
+
+  :global(.js) .viz--ui .viz-text--2 {
+    animation-delay: 150ms;
+  }
+
+  :global(.js) .viz--ui .viz-like {
+    animation: viz-ok 3.4s var(--ease-spring) infinite both;
+    animation-delay: 300ms;
+  }
+
+  @keyframes viz-dots {
+    0%,
+    30% {
+      opacity: 1;
+    }
+    34%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes viz-type {
+    0%,
+    32% {
+      transform: scaleX(0);
+    }
+    55%,
+    90% {
+      transform: scaleX(1);
+    }
+    100% {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .viz :global(*) {
+      animation: none !important;
+    }
+  }
+</style>

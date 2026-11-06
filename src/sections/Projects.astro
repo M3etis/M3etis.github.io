@@ -1,0 +1,91 @@
+---
+import Icon from '../components/Icon.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { cases, tools } from '../data/projects';
+import { site } from '../data/site';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang].projects;
+const a11y = ui[lang].a11y;
+---
+
+<section class="section projects" data-surface="stage" aria-labelledby="projects">
+  <div class="container">
+    <SectionHeader id="projects" eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
+
+    <div class="projects__cases">
+      {cases.map((p) => <ProjectCard project={p} lang={lang} />)}
+    </div>
+
+    <h3 class="projects__tools-title" data-reveal>{t.tools}</h3>
+    <div class="projects__tools">
+      {tools.map((p) => <ToolCard tool={p} lang={lang} />)}
+    </div>
+
+    <p class="projects__more" data-reveal>
+      <a href={site.github} target="_blank" rel="noopener noreferrer">
+        {t.more}<Icon name="chevron-right" size="1em" /><span class="visually-hidden"> {a11y.newTab}</span>
+      </a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .projects__cases {
+    display: grid;
+    gap: var(--grid-gap);
+  }
+
+  .projects__tools-title {
+    margin-top: clamp(var(--space-16), 7vw, var(--space-24));
+    margin-bottom: var(--space-6);
+    font-size: var(--text-h3);
+    letter-spacing: var(--tracking-h3);
+  }
+
+  .projects__tools {
+    display: grid;
+    gap: var(--grid-gap);
+  }
+
+  @media (min-width: 48rem) {
+    .projects__tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .projects__more {
+    margin-top: var(--space-10);
+    text-align: center;
+  }
+
+  .projects__more a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 2.75rem;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .projects__more a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .projects__more a :global(svg) {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .projects__more a:hover :global(svg) {
+    transform: translateX(3px);
+  }
+</style>

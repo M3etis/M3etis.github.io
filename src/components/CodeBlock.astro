@@ -1,0 +1,133 @@
+---
+import CopyButton from './CopyButton.astro';
+import { ui } from '../i18n/ui';
+import { langFromUrl } from '../i18n/utils';
+
+interface Props {
+  code: string;
+  lang?: string;
+  caption?: string;
+  copy?: boolean;
+  compact?: boolean;
+  /** `false` for decorative use (e.g. inside an aria-hidden illustration): no focus stop, lines wrap. */
+  interactive?: boolean;
+  class?: string;
+}
+
+const { code, lang = 'text', caption, copy = true, compact = false, interactive = true, class: className } = Astro.props;
+const t = ui[langFromUrl(Astro.url)];
+
+// Minimal, dependency-free highlighting: comments, SQL keywords, strings, numbers, $vars, --props.
+// Each token is escaped on its own, so entities are never split by the highlighter.
+const escape = (s: string) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+const span = (cls: string, s: string) => `<span class="${cls}">${escape(s)}</span>`;
+const TOKEN =
+  /(\b(?:SELECT|FROM|WHERE|GROUP|ORDER|BY|LIMIT|WITH|AS|AND|OR|DESC|ASC|SUM|COUNT|AVG|JOIN|ON)\b)|('[^']*')|(\b\d+(?:\.\d+)?\b)|(\$[\w-]+|--[\w-]+)/g;
+const highlightLine = (line: string) => {
+  const trimmed = line.trimStart();
+  if (trimmed.startsWith('//') || trimmed.startsWith('-- ')) return span('tok-c', line);
+  let out = '';
+  let last = 0;
+  for (const m of line.matchAll(TOKEN)) {
+    out += escape(line.slice(last, m.index));
+    const [text, kw, str, num] = m;
+    out += span(kw ? 'tok-k' : str ? 'tok-s' : num ? 'tok-n' : 'tok-v', text);
+    last = (m.index ?? 0) + text.length;
+  }
+  return out + escape(line.slice(last));
+};
+const highlight = (src: string) => src.split('\n').map(highlightLine).join('\n');
+---
+
+<figure class:list={['code', { 'code--compact': compact, 'code--static': !interactive }, className]}>
+  <div class="code__bar">
+    <span class="code__lang">{lang}</span>
+    {copy && <CopyButton value={code} label={t.a11y.copy} copiedLabel={t.a11y.copied} class="code__copy" />}
+  </div>
+  <pre tabindex={interactive ? 0 : undefined}><code set:html={highlight(code)} /></pre>
+  {caption && <figcaption class="code__caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  .code {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--color-code-bg);
+    color: var(--color-code-text);
+  }
+
+  .code__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .code__lang {
+    color: #a1a1a8;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+  }
+
+  .code :global(.code__copy) {
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    background: transparent;
+    color: #a1a1a8;
+  }
+
+  pre {
+    margin: 0;
+    padding: var(--space-4);
+    overflow-x: auto;
+    line-height: 1.6;
+    tab-size: 2;
+  }
+
+  .code--compact pre {
+    padding: var(--space-3) var(--space-4);
+    font-size: 0.75rem;
+  }
+
+  .code--static pre {
+    overflow-x: visible;
+    white-space: pre-wrap;
+  }
+
+  pre:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .code :global(.tok-c) {
+    color: #8e8e95;
+  }
+
+  .code :global(.tok-k) {
+    color: #ff7ab2;
+  }
+
+  .code :global(.tok-s) {
+    color: #fc6a5d;
+  }
+
+  .code :global(.tok-n) {
+    color: #d9c97c;
+  }
+
+  .code :global(.tok-v) {
+    color: #5dd8ff;
+  }
+
+  .code__caption {
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+    color: #a1a1a8;
+    font-size: var(--text-caption);
+  }
+</style>

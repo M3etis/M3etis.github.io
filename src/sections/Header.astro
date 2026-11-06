@@ -1,0 +1,327 @@
+---
+import Icon from '../components/Icon.astro';
+import LangSwitch from '../components/LangSwitch.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import type { Lang } from '../i18n/utils';
+import { pathFor } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** On non-home pages anchors must point back to the home page. */
+  home?: boolean;
+}
+
+const { lang, home = true } = Astro.props;
+const t = ui[lang];
+const base = home ? '' : pathFor(lang);
+const items = [
+  ['what', t.nav.what],
+  ['projects', t.nav.projects],
+  ['skills', t.nav.skills],
+  ['experience', t.nav.experience],
+  ['contact', t.nav.contact],
+] as const;
+---
+
+<header class="site-header no-print">
+  <span class="site-header__progress" aria-hidden="true"></span>
+  <div class="container site-header__inner">
+    <a href={pathFor(lang)} class="site-header__brand">{t.hero.name}</a>
+
+    <nav class="site-header__nav" id="site-nav" aria-label={t.a11y.primaryNav}>
+      <span class="site-header__pill" aria-hidden="true"></span>
+      <ul role="list">
+        {
+          items.map(([id, label], n) => (
+            <li style={`--n: ${n}`}>
+              <a href={`${base}#${id}`} data-nav-link={id}>
+                {label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__tools">
+      <LangSwitch />
+      <ThemeToggle />
+      <button
+        type="button"
+        class="site-header__burger"
+        aria-controls="site-nav"
+        aria-expanded="false"
+        data-menu-toggle
+        data-label-open={t.a11y.menu}
+        data-label-close={t.a11y.closeMenu}
+        aria-label={t.a11y.menu}
+      >
+        <Icon name="menu" class="burger-open" />
+        <Icon name="x" class="burger-close" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+
+  const setOpen = (open: boolean) => {
+    if (!header || !toggle) return;
+    header.dataset.open = String(open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', (open ? toggle.dataset.labelClose : toggle.dataset.labelOpen) ?? '');
+  };
+
+  toggle?.addEventListener('click', () => setOpen(header?.dataset.open !== 'true'));
+  header?.querySelectorAll('[data-nav-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && header?.dataset.open === 'true') {
+      setOpen(false);
+      toggle?.focus();
+    }
+  });
+
+  // Sliding pill: follows the hovered link, rests on the section in view.
+  const nav = document.querySelector<HTMLElement>('.site-header__nav');
+  const pill = document.querySelector<HTMLElement>('.site-header__pill');
+  let current: HTMLAnchorElement | null = null;
+  const moveTo = (a: HTMLAnchorElement | null) => {
+    if (!pill) return;
+    if (!a) {
+      pill.style.opacity = '0';
+      return;
+    }
+    pill.style.opacity = '1';
+    pill.style.width = `${a.offsetWidth}px`;
+    pill.style.transform = `translateX(${a.offsetLeft}px)`;
+  };
+  nav?.querySelectorAll<HTMLAnchorElement>('[data-nav-link]').forEach((a) => {
+    a.addEventListener('pointerenter', () => moveTo(a));
+    a.addEventListener('focus', () => moveTo(a));
+  });
+  nav?.addEventListener('pointerleave', () => moveTo(current));
+  nav?.addEventListener('focusout', () => moveTo(current));
+
+  // Reading progress and a "scrolled" state for the bar.
+  let ticking = false;
+  const onScroll = () => {
+    ticking = false;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    header?.style.setProperty('--progress', String(max > 0 ? Math.min(1, scrollY / max) : 0));
+    if (header) header.dataset.scrolled = String(scrollY > 8);
+    // Back in the hero: no section is "current".
+    if (scrollY < innerHeight * 0.4 && current) {
+      current.removeAttribute('aria-current');
+      current = null;
+      if (!nav?.matches(':hover')) moveTo(null);
+    }
+  };
+  addEventListener('scroll', () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(onScroll);
+    }
+  }, { passive: true });
+  onScroll();
+
+  // Highlight the section in view.
+  const links = new Map(
+    [...document.querySelectorAll<HTMLAnchorElement>('[data-nav-link]')].map((a) => [a.dataset.navLink, a]),
+  );
+  if ('IntersectionObserver' in window && links.size) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          links.forEach((a) => a.removeAttribute('aria-current'));
+          current = links.get(entry.target.id) ?? null;
+          current?.setAttribute('aria-current', 'true');
+          if (!nav?.matches(':hover')) moveTo(current);
+        }
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    links.forEach((_, id) => {
+      const section = id && document.getElementById(id);
+      if (section) io.observe(section);
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: transparent;
+    transition:
+      background-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  /* Glass appears only once the page moves under the bar. */
+  .site-header[data-scrolled='true'],
+  .site-header[data-open='true'] {
+    background: var(--color-header);
+    backdrop-filter: saturate(1.8) blur(20px);
+    -webkit-backdrop-filter: saturate(1.8) blur(20px);
+    box-shadow: 0 1px 0 var(--color-border);
+  }
+
+  .site-header__progress {
+    position: absolute;
+    inset: auto 0 -1px;
+    height: 2px;
+    background: var(--color-accent);
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left;
+    pointer-events: none;
+  }
+
+  .site-header__inner {
+    display: flex;
+    flex-wrap: wrap; /* at large text sizes the tools wrap instead of overflowing */
+    align-items: center;
+    gap: 0 var(--space-4);
+    min-height: var(--header-height);
+  }
+
+  .site-header__brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-inline-end: auto;
+    color: var(--color-text);
+    font-size: var(--text-small);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header__nav {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .site-header__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 0;
+  }
+
+  .site-header__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--duration-base) var(--ease-out);
+  }
+
+  .site-header__nav a:hover,
+  .site-header__nav a[aria-current] {
+    color: var(--color-text);
+  }
+
+  .site-header__pill {
+    position: absolute;
+    top: calc(50% - 1rem);
+    left: 0;
+    z-index: -1;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background: var(--color-surface-2);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform var(--duration-slow) var(--ease-out),
+      width var(--duration-slow) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out);
+  }
+
+  .site-header__tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .site-header__burger {
+    display: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--color-text);
+  }
+
+  .site-header__burger > :global(svg) {
+    grid-area: 1 / 1;
+  }
+
+  .site-header__burger :global(.burger-close),
+  .site-header[data-open='true'] .site-header__burger :global(.burger-open) {
+    display: none;
+  }
+
+  .site-header[data-open='true'] .site-header__burger :global(.burger-close) {
+    display: block;
+  }
+
+  @media (max-width: 59.99rem) {
+    :global(.js) .site-header__burger {
+      display: inline-grid;
+    }
+
+    :global(.js) .site-header__nav {
+      order: 3;
+      display: none;
+      width: 100%;
+      padding-block: var(--space-2) var(--space-5);
+    }
+
+    :global(.js) .site-header[data-open='true'] .site-header__nav {
+      display: block;
+    }
+
+    :global(.js) .site-header__nav ul {
+      flex-direction: column;
+    }
+
+    :global(.js) .site-header__nav a {
+      width: 100%;
+      padding-inline: 0;
+      font-size: var(--text-lead);
+      color: var(--color-text);
+    }
+
+    .site-header__pill {
+      display: none;
+    }
+
+    :global(.js) .site-header[data-open='true'] .site-header__nav li {
+      animation: enter-up 300ms var(--ease-out) backwards;
+      animation-delay: calc(var(--n, 0) * 40ms);
+    }
+
+    /* Without JS the nav stays visible as a scrollable row. */
+    :global(html:not(.js)) .site-header__nav {
+      order: 3;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    :global(html:not(.js)) .site-header__nav ul {
+      flex-wrap: nowrap;
+    }
+  }
+</style>

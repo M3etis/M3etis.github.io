@@ -1,0 +1,66 @@
+---
+/**
+ * Section heading. The title may contain "\n" to mark author-defined lines; each line is masked and
+ * slides up on reveal (ClamKeep-style), the eyebrow and intro fade in around it.
+ */
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  intro?: string;
+  align?: 'start' | 'center';
+}
+
+const { id, eyebrow, title, intro, align = 'start' } = Astro.props;
+const lines = title.split('\n');
+---
+
+<header class:list={['section-header', `section-header--${align}`]} data-reveal="lines">
+  <p class="section-header__eyebrow" data-reveal-part>{eyebrow}</p>
+  <h2 id={id} class="section-header__title">
+    {
+      lines.map((line, l) => (
+        <span class="mask" style={`--l: ${l}`}>
+          {/* trailing space keeps words apart in the accessible name; it collapses visually */}
+          <span>{line}{l < lines.length - 1 ? ' ' : ''}</span>
+        </span>
+      ))
+    }
+  </h2>
+  {intro && <p class="section-header__intro" data-reveal-part style="--part-delay: 260ms">{intro}</p>}
+  <slot />
+</header>
+
+<style>
+  .section-header {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 48rem;
+    margin-block-end: clamp(var(--space-10), 5vw, var(--space-16));
+  }
+
+  .section-header--center {
+    margin-inline: auto;
+    text-align: center;
+    justify-items: center;
+  }
+
+  .section-header__eyebrow {
+    color: var(--color-accent);
+    font-size: var(--text-small);
+    font-weight: var(--weight-semibold);
+  }
+
+  .section-header__title {
+    font-size: var(--text-h2);
+    line-height: 1.08;
+    letter-spacing: var(--tracking-h2);
+  }
+
+  .section-header__intro {
+    max-width: 40rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-lead);
+    line-height: 1.45;
+  }
+</style>

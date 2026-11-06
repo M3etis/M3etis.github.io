@@ -1,0 +1,42 @@
+---
+/**
+ * Surface for grouped content. Depth comes from the background shift, not from borders;
+ * `interactive` adds the hover lift used by project tiles.
+ */
+interface Props {
+  as?: 'div' | 'article' | 'li' | 'section';
+  padded?: boolean;
+  interactive?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { as: Tag = 'div', padded = true, interactive = false, class: className, ...rest } = Astro.props;
+---
+
+<Tag class:list={['card', { 'card--padded': padded, 'card--interactive': interactive }, className]} {...rest}>
+  <slot />
+</Tag>
+
+<style>
+  .card {
+    position: relative;
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+  }
+
+  .card--padded {
+    padding: clamp(var(--space-6), 3.5vw, var(--space-10));
+  }
+
+  .card--interactive {
+    transition:
+      transform var(--duration-slow) var(--ease-out),
+      box-shadow var(--duration-slow) var(--ease-out);
+  }
+
+  .card--interactive:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-2);
+  }
+</style>

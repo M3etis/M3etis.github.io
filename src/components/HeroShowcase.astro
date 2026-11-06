@@ -1,0 +1,633 @@
+---
+/**
+ * Hero "product shot": a dark app window with an Offline Sales Analytics conversation (illustration).
+ *
+ * Story mode (desktop, motion allowed, window fits the screen): the window pins in the middle of the
+ * screen while you scroll past a spacer, and the conversation plays out step by step — question → intent
+ * → validated SQL → chart → streamed answer → rating. The pinned block is only as tall as its content,
+ * so nothing empty is left under it when the pin releases.
+ * Lite mode (small screens): the same sequence plays once when the window scrolls into view.
+ * No JS / reduced motion: the final state is shown, nothing is hidden.
+ */
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+import Icon from './Icon.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang].showcase;
+const bars = [100, 78, 61, 34];
+---
+
+<div class="showcase" data-showcase>
+  <div class="showcase__track">
+    <div class="showcase__sticky">
+      <figure class="sc" data-step="5" aria-label={t.label}>
+        <div class="sc__stage">
+          <div class="sc__window" data-surface="stage" aria-hidden="true">
+            <div class="sc__bar">
+              <span class="sc__dots"><i></i><i></i><i></i></span>
+              <span class="sc__title">{t.app}<span class="sc__project"> · {t.project}</span></span>
+              <span class="sc__status"><i></i>{t.status}</span>
+            </div>
+
+            <div class="sc__body">
+              <p class="sc__q">{t.question}</p>
+
+              <div class="sc__a">
+                <p class="sc__typing"><i></i><i></i><i></i></p>
+                <ul class="sc__chips">
+                  {
+                    t.chips.map((c, i) => (
+                      <li data-at={i + 1}>
+                        <Icon name="check" size="0.8rem" />
+                        {c}
+                      </li>
+                    ))
+                  }
+                </ul>
+                <p class="sc__sql" data-at="2"><code>{t.sql}</code></p>
+                <ul class="sc__chart" data-at="3">
+                  {
+                    t.regions.map((r, i) => (
+                      <li style={`--w: ${bars[i]}%; --i: ${i}`}>
+                        <span>{r}</span>
+                        <b />
+                      </li>
+                    ))
+                  }
+                </ul>
+                <p class="sc__answer" data-at="4"><span>{t.answer}</span></p>
+                <div class="sc__actions" data-at="5">
+                  <span class="sc__btn sc__btn--on"><Icon name="thumbs-up" size="0.95rem" /></span>
+                  <span class="sc__btn"><Icon name="thumbs-down" size="0.95rem" /></span>
+                  <span class="sc__btn sc__btn--text"><Icon name="refresh-cw" size="0.9rem" />{t.retry}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ul class="sc__callouts" role="list">
+            <li class="sc__callout sc__callout--1" data-at="2"><Icon name="shield-check" size="1rem" />{t.callouts[0]}</li>
+            <li class="sc__callout sc__callout--2" data-at="3"><Icon name="lock" size="1rem" />{t.callouts[1]}</li>
+            <li class="sc__callout sc__callout--3" data-at="5"><Icon name="thumbs-up" size="1rem" />{t.callouts[2]}</li>
+          </ul>
+        </div>
+
+        <figcaption class="sc__caption">
+          {t.caption} ·
+          <a href="#case-osa">{t.more}<Icon name="chevron-right" size="0.9em" /></a>
+        </figcaption>
+      </figure>
+    </div>
+    <div class="showcase__spacer" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-showcase]');
+  const sc = root?.querySelector<HTMLElement>('.sc');
+
+  if (root && sc) {
+    const track = root.querySelector<HTMLElement>('.showcase__track')!;
+    const sticky = root.querySelector<HTMLElement>('.showcase__sticky')!;
+    const items = [...sc.querySelectorAll<HTMLElement>('[data-at]')];
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const storyQuery = window.matchMedia('(min-width: 64rem) and (min-height: 40rem)');
+    const STEPS = 5;
+    // scroll progress at which each step switches on (story mode)
+    const thresholds = [0, 0.1, 0.27, 0.44, 0.61, 0.78];
+    let step = -1;
+
+    const setStep = (n: number) => {
+      if (n === step) return;
+      step = n;
+      sc.dataset.step = String(n);
+      for (const el of items) el.classList.toggle('is-on', Number(el.dataset.at) <= n);
+    };
+
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const rect = track.getBoundingClientRect();
+      const top = parseFloat(getComputedStyle(sticky).top) || 0;
+      const distance = Math.max(1, rect.height - sticky.offsetHeight);
+      const p = Math.min(1, Math.max(0, (top - rect.top) / distance));
+      root.style.setProperty('--p', p.toFixed(4));
+      let n = 0;
+      thresholds.forEach((th, i) => {
+        if (p >= th) n = i;
+      });
+      setStep(n);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+
+    let liteObserver: IntersectionObserver | null = null;
+    let liteTimer = 0;
+    let mode: 'story' | 'lite' | 'final' | '' = '';
+
+    const playOnce = () => {
+      let n = 0;
+      setStep(0);
+      const tick = () => {
+        n += 1;
+        setStep(n);
+        if (n < STEPS) liteTimer = window.setTimeout(tick, n === 1 ? 500 : 650);
+      };
+      liteTimer = window.setTimeout(tick, 450);
+    };
+
+    const headerHeight = () => document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 52;
+
+    // The pinned block must fit between the header and the bottom of the screen.
+    const fits = () => sticky.offsetHeight <= innerHeight - headerHeight() - 24;
+
+    // Centre the pinned window in the space under the header.
+    const place = () => {
+      const free = innerHeight - headerHeight() - sticky.offsetHeight;
+      root.style.setProperty('--sticky-top', `${Math.round(headerHeight() + Math.max(12, free / 2))}px`);
+    };
+
+    const wantedMode = () => (reduce.matches ? 'final' : storyQuery.matches && fits() ? 'story' : 'lite');
+
+    const setup = () => {
+      window.removeEventListener('scroll', onScroll);
+      liteObserver?.disconnect();
+      clearTimeout(liteTimer);
+      root.classList.remove('is-story');
+      root.style.removeProperty('--p');
+      root.style.removeProperty('--sticky-top');
+      mode = wantedMode();
+
+      if (mode === 'final') {
+        setStep(STEPS);
+        return;
+      }
+
+      if (mode === 'story') {
+        root.classList.add('is-story');
+        place();
+        step = -1;
+        measure();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return;
+      }
+
+      if ('IntersectionObserver' in window) {
+        setStep(0);
+        liteObserver = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              liteObserver?.disconnect();
+              playOnce();
+            }
+          },
+          { threshold: 0.35 },
+        );
+        liteObserver.observe(sc);
+      } else {
+        setStep(STEPS);
+      }
+    };
+
+    let resizeFrame = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => {
+        if (wantedMode() !== mode) setup();
+        else if (mode === 'story') {
+          place();
+          measure();
+        }
+      });
+    });
+
+    setup();
+    storyQuery.addEventListener('change', setup);
+    reduce.addEventListener('change', setup);
+  }
+</script>
+
+<style>
+  /* ---------- Layout & story pinning ---------- */
+  .showcase {
+    margin-top: clamp(var(--space-8), 4vw, var(--space-12));
+  }
+
+  .showcase__spacer {
+    display: none;
+  }
+
+  /* Pinned block = its content; --sticky-top (set in JS) centres it under the header.
+     The spacer is the scroll distance during which the story plays. */
+  .showcase.is-story .showcase__sticky {
+    position: sticky;
+    top: var(--sticky-top, var(--header-height));
+  }
+
+  .showcase.is-story .showcase__spacer {
+    display: block;
+    height: 110vh;
+  }
+
+  .sc {
+    width: min(100%, 62rem);
+    margin: 0 auto;
+    padding-inline: var(--gutter);
+    perspective: 2200px;
+  }
+
+  .sc__stage {
+    position: relative;
+    transform-origin: 50% 100%;
+  }
+
+  /* ---------- Window ---------- */
+  .sc__window {
+    overflow: hidden;
+    border-radius: 22px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.06),
+      0 50px 100px -30px rgb(0 0 0 / 0.45),
+      0 30px 60px -40px rgb(0 0 0 / 0.5);
+    font-size: var(--text-small);
+    transform: scale(calc(0.94 + 0.06 * min(1, var(--p, 1) * 6)));
+    transform-origin: 50% 0%;
+  }
+
+  .sc__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+  }
+
+  .sc__dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .sc__dots i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--color-border-strong);
+  }
+
+  .sc__title {
+    margin-inline: auto;
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+  }
+
+  .sc__project {
+    color: var(--color-text-subtle);
+    font-weight: var(--weight-regular);
+  }
+
+  .sc__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .sc__status i {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--color-success);
+  }
+
+  .sc__body {
+    display: grid;
+    gap: var(--space-4);
+    width: min(100%, 40rem);
+    margin: 0 auto;
+    padding: clamp(var(--space-5), 3vw, var(--space-10)) clamp(var(--space-4), 3vw, var(--space-8));
+  }
+
+  .sc__q {
+    justify-self: end;
+    max-width: 85%;
+    padding: var(--space-2) var(--space-4);
+    border-radius: 18px 18px 6px 18px;
+    background: var(--color-accent-fill);
+    color: #fff;
+    font-size: var(--text-body);
+  }
+
+  .sc__a {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: 18px;
+    background: var(--color-surface-2);
+  }
+
+  .sc__typing {
+    display: none;
+    gap: 5px;
+    padding: var(--space-1) 0;
+  }
+
+  .sc__typing i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-text-subtle);
+    animation: sc-dot 1s var(--ease-out) infinite;
+  }
+
+  .sc__typing i:nth-child(2) {
+    animation-delay: 150ms;
+  }
+
+  .sc__typing i:nth-child(3) {
+    animation-delay: 300ms;
+  }
+
+  :global(.js) .sc[data-step='0'] .sc__typing,
+  :global(.js) .sc[data-step='1'] .sc__typing {
+    display: flex;
+  }
+
+  .sc__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sc__chips li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+  }
+
+  .sc__chips :global(svg) {
+    color: var(--color-success);
+  }
+
+  .sc__sql {
+    overflow: hidden;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: #ff7ab2;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .sc__sql code {
+    display: inline-block;
+  }
+
+  .sc__chart {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sc__chart li {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+  }
+
+  .sc__chart b {
+    display: block;
+    width: var(--w);
+    height: 0.75rem;
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    transform-origin: left;
+  }
+
+  .sc__answer {
+    color: var(--color-text);
+    font-size: var(--text-body);
+    font-weight: var(--weight-medium);
+  }
+
+  .sc__answer span {
+    display: inline-block;
+  }
+
+  .sc__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .sc__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+  }
+
+  .sc__btn--on {
+    background: var(--color-accent-fill);
+    color: #fff;
+  }
+
+  .sc__btn--text {
+    margin-inline-start: auto;
+  }
+
+  /* ---------- Callouts ---------- */
+  .sc__callouts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2) var(--space-3);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sc__callout {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    box-shadow:
+      0 0 0 1px var(--color-border),
+      var(--shadow-2);
+    color: var(--color-text);
+    font-size: var(--text-small);
+    font-weight: var(--weight-medium);
+  }
+
+  .sc__callout :global(svg) {
+    color: var(--color-accent);
+  }
+
+  @media (min-width: 72rem) {
+    .sc__callouts {
+      display: block;
+      margin: 0;
+    }
+
+    .sc__callout {
+      position: absolute;
+      z-index: 2;
+      white-space: nowrap;
+    }
+
+    /* placed over the empty edges of the window, never over content */
+    .sc__callout--1 {
+      top: 17%;
+      left: -3.5rem;
+    }
+
+    .sc__callout--2 {
+      top: 60%;
+      right: -3.5rem;
+    }
+
+    .sc__callout--3 {
+      bottom: -1.4rem;
+      left: 9%;
+    }
+
+    .sc__caption {
+      margin-top: var(--space-12);
+    }
+  }
+
+  .sc__caption {
+    margin-top: var(--space-6);
+    color: var(--color-text-subtle);
+    font-size: var(--text-caption);
+    text-align: center;
+  }
+
+  .sc__caption a {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 2.75rem;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .sc__caption a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* ---------- Step states (JS only; without JS everything is shown) ---------- */
+  :global(.js) .sc [data-at] {
+    transition:
+      opacity 500ms var(--ease-expo),
+      transform 600ms var(--ease-expo);
+  }
+
+  :global(.js) .sc [data-at]:not(.is-on) {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  :global(.js) .sc .sc__callout:not(.is-on) {
+    transform: translateY(12px) scale(0.9);
+  }
+
+  :global(.js) .sc .sc__callout {
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 600ms var(--ease-spring);
+  }
+
+  /* SQL and answer "type" in once from left to right */
+  :global(.js) .sc .sc__sql code,
+  :global(.js) .sc .sc__answer span {
+    transition: clip-path 900ms cubic-bezier(0.45, 0, 0.55, 1) 120ms;
+  }
+
+  :global(.js) .sc .sc__sql:not(.is-on) code,
+  :global(.js) .sc .sc__answer:not(.is-on) span {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  /* bars grow one after another */
+  :global(.js) .sc .sc__chart b {
+    transition: transform 900ms var(--ease-expo);
+    transition-delay: calc(150ms + var(--i) * 90ms);
+  }
+
+  :global(.js) .sc .sc__chart:not(.is-on) b {
+    transform: scaleX(0);
+  }
+
+  /* the selected rating pops */
+  :global(.js) .sc .sc__actions.is-on .sc__btn--on {
+    animation: pop 450ms var(--ease-spring) 250ms backwards;
+  }
+
+  /* ---------- Intro: the window rises into place once ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .sc__stage {
+      animation: sc-rise 1200ms var(--ease-expo) 650ms backwards;
+    }
+  }
+
+  @keyframes sc-rise {
+    from {
+      opacity: 0;
+      transform: translateY(90px) rotateX(16deg);
+    }
+  }
+
+  @keyframes sc-dot {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    40% {
+      transform: translateY(-4px);
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .sc__project {
+      display: none;
+    }
+
+    .sc__chart li {
+      grid-template-columns: 4.25rem 1fr;
+    }
+  }
+</style>

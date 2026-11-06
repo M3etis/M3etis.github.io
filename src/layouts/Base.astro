@@ -1,0 +1,212 @@
+---
+import '../styles/tokens.css';
+import '../styles/base.css';
+import Footer from '../sections/Footer.astro';
+import Header from '../sections/Header.astro';
+import { site } from '../data/site';
+import type { Lang } from '../i18n/utils';
+import { pathFor } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  /** Path without the language prefix, e.g. '/' or '/404'. */
+  path?: string;
+  home?: boolean;
+  noindex?: boolean;
+}
+
+const { lang, title, description, path = '/', home = true, noindex = false } = Astro.props;
+const t = ui[lang];
+const pageTitle = title ?? t.meta.title;
+const pageDescription = description ?? t.meta.description;
+const canonical = new URL(pathFor(lang, path), site.url).href;
+const alternates = (['ru', 'en'] as const).map((l) => ({ l, href: new URL(pathFor(l, path), site.url).href }));
+const ogImage = new URL(`/og-${lang}.png`, site.url).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: lang === 'ru' ? 'Владислав Ли' : 'Vladislav Li',
+  alternateName: lang === 'ru' ? 'Vladislav Li' : 'Владислав Ли',
+  jobTitle: 'AI Product Engineer / Frontend Engineer',
+  description: t.hero.title,
+  url: site.url,
+  image: new URL('/og-portrait.jpg', site.url).href,
+  email: `mailto:${site.email}`,
+  worksFor: { '@type': 'Organization', name: 'Alem.AI Foundation' },
+  address: { '@type': 'PostalAddress', addressLocality: 'Astana', addressCountry: 'KZ' },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Korkyt Ata Kyzylorda University' },
+  knowsAbout: ['AI automation', 'AI UX', 'Local LLMs', 'RAG', 'Frontend engineering', 'Design systems', 'TypeScript', 'React', 'FastAPI'],
+  sameAs: [site.github, site.telegram],
+};
+---
+
+<!doctype html>
+<html lang={lang} dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta name="author" content={jsonLd.name} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.l} href={a.href} />)}
+    <link rel="alternate" hreflang="x-default" href={alternates[0].href} />
+
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="me" href={site.github} />
+
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content={jsonLd.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === 'ru' ? 'ru_RU' : 'en_US'} />
+    <meta property="og:locale:alternate" content={lang === 'ru' ? 'en_US' : 'ru_RU'} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={t.meta.ogAlt} />
+    <meta property="profile:first_name" content={lang === 'ru' ? 'Владислав' : 'Vladislav'} />
+    <meta property="profile:last_name" content={lang === 'ru' ? 'Ли' : 'Li'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImage} />
+
+
+    <!-- Runs before paint: applies the saved theme and marks JS as available (no FOUC, no hidden content without JS). -->
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.a11y.skip}</a>
+    <div id="top"></div>
+    <Header lang={lang} home={home} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer lang={lang} home={home} />
+
+    <script>
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 48rem)').matches;
+
+      /* ---------- Reveal on scroll (once) ----------
+         Content is visible without JS. After an element has landed, its data-reveal attribute is removed
+         so the element's own hover transitions take over again. */
+      const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+      targets.forEach((el) => {
+        const sibs = el.parentElement ? [...el.parentElement.children].filter((c) => c.hasAttribute('data-reveal')) : [];
+        el.style.setProperty('--i', String(Math.max(0, sibs.indexOf(el))));
+      });
+
+      const settle = (el: HTMLElement) => {
+        const i = Number(el.style.getPropertyValue('--i')) || 0;
+        window.setTimeout(() => {
+          el.removeAttribute('data-reveal');
+          el.classList.remove('is-visible');
+        }, 1400 + Math.min(i, 6) * 90);
+      };
+
+      if (reduce || !('IntersectionObserver' in window)) {
+        targets.forEach((el) => el.removeAttribute('data-reveal'));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (!e.isIntersecting) continue;
+              const el = e.target as HTMLElement;
+              el.classList.add('is-visible');
+              io.unobserve(el);
+              settle(el);
+            }
+          },
+          { rootMargin: '0px 0px -10% 0px' },
+        );
+        targets.forEach((el) => io.observe(el));
+      }
+
+      /* ---------- Small loops run only while visible ---------- */
+      const loops = document.querySelectorAll<HTMLElement>('[data-loop]');
+      if (!reduce && 'IntersectionObserver' in window && loops.length) {
+        const lo = new IntersectionObserver((entries) => {
+          for (const e of entries) e.target.classList.toggle('is-playing', e.isIntersecting);
+        });
+        loops.forEach((el) => lo.observe(el));
+      }
+
+      if (!reduce && finePointer) {
+        /* ---------- Magnetic buttons: drift a little towards the pointer ---------- */
+        document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((el) => {
+          el.addEventListener('pointermove', (e) => {
+            const r = el.getBoundingClientRect();
+            el.style.setProperty('--mag-x', `${((e.clientX - r.left - r.width / 2) * 0.22).toFixed(1)}px`);
+            el.style.setProperty('--mag-y', `${((e.clientY - r.top - r.height / 2) * 0.3).toFixed(1)}px`);
+          });
+          el.addEventListener('pointerleave', () => {
+            el.style.removeProperty('--mag-x');
+            el.style.removeProperty('--mag-y');
+          });
+        });
+
+        /* ---------- Parallax: elements drift slightly against the scroll ---------- */
+        const layers = [...document.querySelectorAll<HTMLElement>('[data-parallax]')];
+        if (layers.length && 'IntersectionObserver' in window) {
+          const visible = new Set<HTMLElement>();
+          const po = new IntersectionObserver((entries) => {
+            for (const e of entries) {
+              const el = e.target as HTMLElement;
+              if (e.isIntersecting) visible.add(el);
+              else visible.delete(el);
+            }
+            schedule();
+          });
+          layers.forEach((el) => po.observe(el));
+          let frame = 0;
+          const update = () => {
+            frame = 0;
+            const mid = innerHeight / 2;
+            visible.forEach((el) => {
+              const r = el.getBoundingClientRect();
+              const k = Number(el.dataset.parallax) || 0.06;
+              const shift = Math.max(-28, Math.min(28, (r.top + r.height / 2 - mid) * -k));
+              el.style.transform = `translate3d(0, ${shift.toFixed(1)}px, 0)`;
+            });
+          };
+          const schedule = () => {
+            if (!frame) frame = requestAnimationFrame(update);
+          };
+          addEventListener('scroll', schedule, { passive: true });
+          addEventListener('resize', schedule);
+        }
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  main:focus {
+    outline: none;
+  }
+</style>

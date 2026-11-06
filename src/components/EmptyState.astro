@@ -1,0 +1,53 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+
+/** Calm notice for missing or private content (e.g. "code is private"). */
+interface Props {
+  icon?: IconName;
+  title: string;
+  text?: string;
+  compact?: boolean;
+}
+
+const { icon = 'inbox', title, text, compact = false } = Astro.props;
+---
+
+<div class:list={['empty', { 'empty--compact': compact }]}>
+  <Icon name={icon} size="1.125rem" class="empty__icon" />
+  <div>
+    <p class="empty__title">{title}</p>
+    {text && <p class="empty__text">{text}</p>}
+    <slot />
+  </div>
+</div>
+
+<style>
+  .empty {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+    color: var(--color-text-muted);
+  }
+
+  .empty--compact {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .empty :global(.empty__icon) {
+    margin-top: 0.2rem;
+    color: var(--color-text-subtle);
+  }
+
+  .empty__title {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-small);
+  }
+
+  .empty__text {
+    font-size: var(--text-small);
+  }
+</style>

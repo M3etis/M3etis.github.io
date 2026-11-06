@@ -1,0 +1,132 @@
+---
+import Icon from './Icon.astro';
+import { ui } from '../i18n/ui';
+import { langFromUrl } from '../i18n/utils';
+
+const t = ui[langFromUrl(Astro.url)];
+---
+
+<!-- Cycles system → light → dark. The initial state is applied by the inline script in Base.astro. -->
+<button
+  type="button"
+  class="theme-toggle"
+  data-theme-toggle
+  data-label-system={t.a11y.themeSystem}
+  data-label-light={t.a11y.themeLight}
+  data-label-dark={t.a11y.themeDark}
+  aria-label={t.a11y.themeToggle}
+  title={t.a11y.themeToggle}
+>
+  <Icon name="monitor" class="theme-toggle__system" />
+  <Icon name="sun" class="theme-toggle__light" />
+  <Icon name="moon" class="theme-toggle__dark" />
+</button>
+
+<script>
+  const KEY = 'theme';
+  const order = ['system', 'light', 'dark'] as const;
+  type Mode = (typeof order)[number];
+
+  const read = (): Mode => {
+    try {
+      const v = localStorage.getItem(KEY);
+      return v === 'light' || v === 'dark' ? v : 'system';
+    } catch {
+      return 'system';
+    }
+  };
+
+  const apply = (mode: Mode) => {
+    const root = document.documentElement;
+    if (mode === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', mode);
+    try {
+      if (mode === 'system') localStorage.removeItem(KEY);
+      else localStorage.setItem(KEY, mode);
+    } catch {
+      /* storage unavailable — theme still applies for this page view */
+    }
+    for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
+      btn.dataset.mode = mode;
+      const label = btn.dataset[`label${mode[0].toUpperCase()}${mode.slice(1)}` as 'labelSystem'];
+      if (label) btn.setAttribute('aria-label', label);
+      btn.title = label ?? '';
+    }
+  };
+
+  apply(read());
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
+    btn.addEventListener('click', () => {
+      const current = (btn.dataset.mode as Mode) ?? 'system';
+      const next = order[(order.indexOf(current) + 1) % order.length];
+      // The new theme grows as a circle from the button (View Transitions, where supported).
+      if (!document.startViewTransition || reduce.matches) {
+        apply(next);
+        return;
+      }
+      const r = btn.getBoundingClientRect();
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      const transition = document.startViewTransition(() => apply(next));
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+          { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' },
+        );
+      });
+    });
+  }
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--color-text-muted);
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  :global(html:not(.js)) .theme-toggle {
+    display: none;
+  }
+
+  .theme-toggle:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+
+  .theme-toggle > :global(svg) {
+    grid-area: 1 / 1;
+    display: none;
+  }
+
+  .theme-toggle:not([data-mode]) :global(.theme-toggle__system),
+  .theme-toggle[data-mode='system'] :global(.theme-toggle__system),
+  .theme-toggle[data-mode='light'] :global(.theme-toggle__light),
+  .theme-toggle[data-mode='dark'] :global(.theme-toggle__dark) {
+    display: block;
+    animation: theme-icon-in 420ms var(--ease-spring);
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.9);
+  }
+
+  @keyframes theme-icon-in {
+    from {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.5);
+    }
+  }
+</style>

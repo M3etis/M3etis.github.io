@@ -1,0 +1,117 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+import { ui } from '../i18n/ui';
+import { isTodo, langFromUrl } from '../i18n/utils';
+
+interface Props {
+  icon: IconName;
+  label: string;
+  value: string;
+  /** Pass a string starting with the TODO marker when the link is not known yet. */
+  href: string;
+  download?: boolean;
+}
+
+const { icon, label, value, href, download } = Astro.props;
+const t = ui[langFromUrl(Astro.url)];
+const pending = isTodo(href);
+const external = /^https?:\/\//.test(href);
+---
+
+{
+  pending ? (
+    <div class="contact contact--pending" title={href}>
+      <span class="contact__icon"><Icon name={icon} size="1.15rem" /></span>
+      <span class="contact__text">
+        <span class="contact__label">{label}</span>
+        <span class="contact__value todo">{value}</span>
+      </span>
+    </div>
+  ) : (
+    <a
+      class="contact"
+      href={href}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer me' } : {})}
+      {...(download ? { download: '' } : {})}
+    >
+      <span class="contact__icon"><Icon name={icon} size="1.15rem" /></span>
+      <span class="contact__text">
+        <span class="contact__label">{label}</span>
+        <span class="contact__value">{value}</span>
+      </span>
+      <Icon name={download ? 'download' : 'chevron-right'} size="1.1rem" class="contact__arrow" />
+      {external && <span class="visually-hidden">{t.a11y.newTab}</span>}
+    </a>
+  )
+}
+
+<style>
+  .contact {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 4.25rem;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+    text-decoration: none;
+    transition:
+      background-color var(--duration-base) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  a.contact:hover {
+    background: color-mix(in srgb, var(--color-bg-alt) 85%, var(--color-text) 6%);
+  }
+
+  a.contact:active {
+    transform: scale(0.99);
+  }
+
+  .contact__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .contact__text {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .contact__label {
+    color: var(--color-text-subtle);
+    font-size: var(--text-caption);
+  }
+
+  .contact__value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: var(--weight-medium);
+  }
+
+  .contact__value.todo {
+    justify-self: start;
+    font-weight: var(--weight-regular);
+  }
+
+  .contact :global(.contact__arrow) {
+    color: var(--color-text-subtle);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      color var(--duration-base) var(--ease-out);
+  }
+
+  a.contact:hover :global(.contact__arrow) {
+    color: var(--color-accent);
+    transform: translateX(3px);
+  }
+</style>

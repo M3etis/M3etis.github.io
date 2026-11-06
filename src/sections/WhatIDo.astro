@@ -1,0 +1,106 @@
+---
+import AreaViz from '../components/AreaViz.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang].what;
+const kinds = ['auto', 'agents', 'ui'] as const;
+---
+
+<section class="section section--alt" aria-labelledby="what">
+  <div class="container">
+    <SectionHeader id="what" eyebrow={t.eyebrow} title={t.title} />
+
+    <ul class="areas" role="list">
+      {
+        t.areas.map((a, i) => (
+          <li class="area" data-reveal="card">
+            <AreaViz kind={kinds[i]} />
+            <h3 class="area__title">{a.title}</h3>
+            <p class="area__text">{a.text}</p>
+            <ul class="area__examples" role="list">
+              {a.examples.map((e) => (
+                <li>{e}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .areas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--grid-gap);
+    margin: 0;
+  }
+
+  @media (min-width: 60rem) {
+    .areas {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .area {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(var(--space-6), 3vw, var(--space-8));
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    transition:
+      transform var(--duration-slow) var(--ease-out),
+      box-shadow var(--duration-slow) var(--ease-out);
+  }
+
+  .area:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-2);
+  }
+
+  .area__title {
+    margin-top: var(--space-8);
+    font-size: var(--text-h3);
+    letter-spacing: var(--tracking-h3);
+    line-height: 1.2;
+  }
+
+  .area__text {
+    margin-top: var(--space-3);
+    color: var(--color-text-muted);
+  }
+
+  .area__examples {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-small);
+    line-height: 1.4;
+  }
+
+  .area__examples li {
+    position: relative;
+    padding-inline-start: var(--space-5);
+  }
+
+  .area__examples li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+</style>

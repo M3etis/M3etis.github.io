@@ -1,0 +1,176 @@
+---
+import Button from '../components/Button.astro';
+import HeroShowcase from '../components/HeroShowcase.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../data/site';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+const h = t.hero;
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="container hero__inner">
+    <p class="hero__eyebrow" aria-hidden="true">
+      {h.name}<span> · {h.role}</span>
+    </p>
+
+    <h1 id="hero-title" class="hero__title">
+      <span class="visually-hidden">{h.name}, {h.role}. </span>
+      {
+        h.titleLines.map((line, l) => (
+          <span class="mask" style={`--l: ${l}`}>
+            <span>{line}{l < h.titleLines.length - 1 ? ' ' : ''}</span>
+          </span>
+        ))
+      }
+    </h1>
+
+    <p class="hero__lead">{h.subtitle}</p>
+
+    <div class="hero__actions">
+      <Button href="#projects" size="xl" data-magnetic>{h.ctaProjects}</Button>
+      <Button href="#contact" variant="secondary" size="xl" data-magnetic>{h.ctaContact}</Button>
+    </div>
+
+    <p class="hero__links">
+      <a href={site.github} target="_blank" rel="noopener noreferrer me">
+        GitHub<Icon name="arrow-up-right" size="0.9em" /><span class="visually-hidden"> {t.a11y.newTab}</span>
+      </a>
+      <a href={site.cv[lang]} download>{h.ctaCv}<Icon name="download" size="0.9em" /></a>
+    </p>
+
+  </div>
+
+  <HeroShowcase lang={lang} />
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(var(--space-10), 5vw, var(--space-20)) clamp(var(--space-8), 3.5vw, var(--space-12));
+    background: var(--color-bg);
+    overflow-x: clip;
+  }
+
+  .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero__eyebrow {
+    max-width: 100%;
+    font-size: clamp(1rem, 0.95rem + 0.3vw, 1.1875rem);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.01em;
+  }
+
+  .hero__eyebrow span {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-medium);
+  }
+
+  .hero__title {
+    max-width: 100%;
+    margin-top: var(--space-4);
+    /* at very large text sizes a long word may break instead of pushing the page wider */
+    overflow-wrap: anywhere;
+    font-size: clamp(2.25rem, 1.35rem + 4.5vw, 5rem); /* 36 → 80 */
+    font-weight: var(--weight-bold);
+    line-height: 1.04;
+    letter-spacing: var(--tracking-display);
+  }
+
+  .hero__lead {
+    max-width: 42rem;
+    margin-top: var(--space-6);
+    color: var(--color-text-muted);
+    font-size: clamp(1.125rem, 1.05rem + 0.4vw, 1.3125rem);
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+  }
+
+  .hero__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 var(--space-6);
+    margin-top: var(--space-3);
+  }
+
+  .hero__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 2.75rem;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .hero__links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .hero__links a :global(svg) {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .hero__links a:hover :global(svg) {
+    transform: translate(1px, -1px);
+  }
+
+  /* ---------- Intro: eyebrow → masked lines → lead → actions → links ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__eyebrow {
+      animation: enter-up 800ms var(--ease-expo) backwards;
+    }
+
+    /* Lines start a hair inside their mask so the headline counts as painted at once (LCP). */
+    .hero__title .mask > span {
+      animation: line-up 1100ms var(--ease-expo) backwards;
+      animation-delay: calc(120ms + var(--l) * 110ms);
+    }
+
+    .hero__lead {
+      animation: enter-up 900ms var(--ease-expo) 420ms backwards;
+    }
+
+    .hero__actions > :global(*) {
+      animation: enter-up 800ms var(--ease-expo) backwards;
+    }
+
+    .hero__actions > :global(:nth-child(1)) {
+      animation-delay: 520ms;
+    }
+
+    .hero__actions > :global(:nth-child(2)) {
+      animation-delay: 590ms;
+    }
+
+    .hero__links {
+      animation: enter-up 700ms var(--ease-expo) 660ms backwards;
+    }
+  }
+
+  @keyframes line-up {
+    from {
+      transform: translateY(98%);
+    }
+  }
+</style>
