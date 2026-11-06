@@ -2,7 +2,10 @@
 /**
  * Offline Sales Analytics as a pipeline (from the README): question → intent → SQL from the LLM →
  * validation → DuckDB → answer. The hero already shows the chat UI; here the card shows how it works.
- * Steps light up one after another when the card is revealed.
+ *
+ * With JS the steps run one after another in a loop (src/scripts/sequence.ts): the active step pulses
+ * and its description is replaced by what the app produces at that step (the same example as in the
+ * hero). Without JS or with reduced motion the static list with descriptions is shown.
  */
 import type { Lang } from '../../i18n/utils';
 import Icon, { type IconName } from '../Icon.astro';
@@ -13,30 +16,30 @@ interface Props {
 }
 
 const { lang, label } = Astro.props;
-type Step = { icon: IconName; t: string; d: string };
+type Step = { icon: IconName; t: string; d: string; v: string; mono?: boolean };
 const all: Record<Lang, Step[]> = {
   ru: [
-    { icon: 'mic', t: 'Вопрос', d: 'текстом или голосом' },
-    { icon: 'inbox', t: 'Интент', d: 'сравнение, топ, KPI…' },
-    { icon: 'code', t: 'SQL от LLM', d: 'Qwen 2.5 в Ollama' },
-    { icon: 'shield-check', t: 'Проверка', d: 'только SELECT и WITH' },
-    { icon: 'package', t: 'DuckDB', d: 'локальные данные' },
-    { icon: 'check', t: 'Ответ', d: 'текст, график, голос' },
+    { icon: 'mic', t: 'Вопрос', d: 'текстом или голосом', v: 'Сравни выручку по регионам за квартал' },
+    { icon: 'inbox', t: 'Интент', d: 'сравнение, топ, KPI…', v: 'сравнение' },
+    { icon: 'code', t: 'SQL от LLM', d: 'Qwen 2.5 в Ollama', v: 'SELECT region, SUM(revenue)…', mono: true },
+    { icon: 'shield-check', t: 'Проверка', d: 'только SELECT и WITH', v: 'SELECT · разрешён' },
+    { icon: 'package', t: 'DuckDB', d: 'локальные данные', v: '4 строки' },
+    { icon: 'check', t: 'Ответ', d: 'текст, график, голос', v: 'Регион A впереди' },
   ],
   en: [
-    { icon: 'mic', t: 'Question', d: 'typed or spoken' },
-    { icon: 'inbox', t: 'Intent', d: 'comparison, top, KPI…' },
-    { icon: 'code', t: 'SQL by the LLM', d: 'Qwen 2.5 on Ollama' },
-    { icon: 'shield-check', t: 'Validation', d: 'SELECT and WITH only' },
-    { icon: 'package', t: 'DuckDB', d: 'local data' },
-    { icon: 'check', t: 'Answer', d: 'text, chart, voice' },
+    { icon: 'mic', t: 'Question', d: 'typed or spoken', v: 'Compare revenue by region for the quarter' },
+    { icon: 'inbox', t: 'Intent', d: 'comparison, top, KPI…', v: 'comparison' },
+    { icon: 'code', t: 'SQL by the LLM', d: 'Qwen 2.5 on Ollama', v: 'SELECT region, SUM(revenue)…', mono: true },
+    { icon: 'shield-check', t: 'Validation', d: 'SELECT and WITH only', v: 'SELECT · allowed' },
+    { icon: 'package', t: 'DuckDB', d: 'local data', v: '4 rows' },
+    { icon: 'check', t: 'Answer', d: 'text, chart, voice', v: 'Region A leads' },
   ],
 };
 const steps = all[lang];
 ---
 
 <figure class="flow" aria-label={label}>
-  <ol class="flow__list" role="list">
+  <ol class="flow__list" role="list" data-osa-demo>
     {
       steps.map((s, i) => (
         <li class="flow__step" style={`--s: ${i}`}>
@@ -44,13 +47,34 @@ const steps = all[lang];
             <Icon name={s.icon} size="1.05rem" />
           </span>
           <span class="flow__t">{s.t}</span>
-          <span class="flow__d">{s.d}</span>
+          <span class="flow__out">
+            <span class="flow__d">{s.d}</span>
+            <span class:list={['flow__v', { mono: s.mono }]} aria-hidden="true">
+              {s.v}
+            </span>
+          </span>
         </li>
       ))
     }
   </ol>
   <figcaption class="flow__cap">{label}</figcaption>
 </figure>
+
+<script>
+  import { sequence } from '../../scripts/sequence';
+
+  document.querySelectorAll<HTMLElement>('[data-osa-demo]').forEach((el) => {
+    const steps = [...el.querySelectorAll<HTMLElement>('.flow__step')];
+    const n = steps.length;
+    // one phase per step (the question is typed, SQL is generated: a bit longer), then hold, then reset
+    sequence(el, [1500, 800, 1300, 800, 900, 1000, 2600, 600], (p) => {
+      steps.forEach((s, i) => {
+        s.classList.toggle('is-active', i === p);
+        s.classList.toggle('is-done', i < p && p <= n);
+      });
+    });
+  });
+</script>
 
 <style>
   .flow {
@@ -100,10 +124,34 @@ const steps = all[lang];
     line-height: 1.3;
   }
 
-  .flow__d {
-    color: var(--color-text-muted);
+  /* Description and live value share one cell, so the swap never moves the layout. */
+  .flow__out {
+    display: grid;
+    min-width: 0;
     font-size: var(--text-caption);
     line-height: 1.35;
+  }
+
+  .flow__out > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .flow__d {
+    color: var(--color-text-muted);
+  }
+
+  .flow__v {
+    overflow: hidden;
+    color: var(--color-accent);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    opacity: 0;
+  }
+
+  .flow__v.mono {
+    font-size: 0.6875rem;
+    line-height: 1.6;
   }
 
   .flow__cap {
@@ -113,28 +161,91 @@ const steps = all[lang];
     text-align: center;
   }
 
-  /* Steps light up in order while the card lands (only while the card is being revealed). */
-  :global(.js) :global([data-reveal]) .flow__step {
-    opacity: 0.25;
-    transform: translateY(8px);
+  /* ---------- Demo (set by sequence.ts) ---------- */
+  [data-phase] .flow__step {
+    opacity: 0.4;
+    box-shadow: 0 0 0 1px transparent;
     transition:
-      opacity 500ms var(--ease-expo),
-      transform 600ms var(--ease-expo);
-    transition-delay: calc(350ms + var(--s) * 120ms);
+      opacity 400ms var(--ease-out),
+      box-shadow 400ms var(--ease-out),
+      background-color 400ms var(--ease-out);
   }
 
-  :global(.js) :global([data-reveal].is-visible) .flow__step {
+  [data-phase] :is(.flow__d, .flow__v) {
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  [data-phase] .flow__icon {
+    transition:
+      transform 450ms var(--ease-spring),
+      background-color 300ms var(--ease-out),
+      color 300ms var(--ease-out);
+  }
+
+  [data-phase] .flow__step:last-child .flow__icon {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  [data-phase] .flow__step:is(.is-active, .is-done) {
     opacity: 1;
-    transform: none;
   }
 
-  :global(.js) :global([data-reveal]) .flow__icon {
-    transition: transform 450ms var(--ease-spring);
-    transition-delay: calc(400ms + var(--s) * 120ms);
-    transform: scale(0.6);
+  [data-phase] .flow__step.is-active {
+    background: var(--color-surface-2);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 55%, transparent);
   }
 
-  :global(.js) :global([data-reveal].is-visible) .flow__icon {
-    transform: none;
+  [data-phase] .flow__step.is-active .flow__icon {
+    animation: flow-ring 1s var(--ease-out) infinite;
+  }
+
+  [data-phase] .flow__step:is(.is-active, .is-done) .flow__d {
+    opacity: 0;
+  }
+
+  [data-phase] .flow__step:is(.is-active, .is-done) .flow__v {
+    opacity: 1;
+  }
+
+  /* The question is typed in */
+  [data-phase] .flow__step:first-child.is-active .flow__v {
+    animation: flow-type 1.1s steps(24, end) both;
+  }
+
+  /* The answer lands */
+  [data-phase] .flow__step:last-child:is(.is-active, .is-done) .flow__icon {
+    background: var(--color-accent-fill);
+    color: #fff;
+    animation: flow-pop 450ms var(--ease-spring);
+  }
+
+  /* Reset: everything fades back before the next round */
+  [data-phase='7'] .flow__step {
+    opacity: 0.4;
+  }
+
+  @keyframes flow-ring {
+    from {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 45%, transparent);
+    }
+    to {
+      box-shadow: 0 0 0 10px transparent;
+    }
+  }
+
+  @keyframes flow-type {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes flow-pop {
+    from {
+      transform: scale(0.6);
+    }
   }
 </style>

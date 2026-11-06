@@ -120,8 +120,8 @@ const ru = {
   },
   skills: {
     eyebrow: 'Навыки',
-    title: 'Технические сильные стороны',
-    intro: 'Сгруппированы по задачам. Жирным — то, на чём держится основная работа.',
+    title: 'Чем я работаю',
+    intro: 'Крупно — то, с чем работаю каждый день. Остальное — когда этого требует задача.',
   },
   experience: {
     eyebrow: 'Опыт',
@@ -277,8 +277,8 @@ const en: Dict = {
   },
   skills: {
     eyebrow: 'Skills',
-    title: 'Technical strengths',
-    intro: 'Grouped by the job they do. In bold — what most of my work stands on.',
+    title: 'What I work with',
+    intro: 'The large ones I use every day; the rest, when a task needs them.',
   },
   experience: {
     eyebrow: 'Experience',

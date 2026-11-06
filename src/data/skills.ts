@@ -1,6 +1,6 @@
 import type { L } from '../i18n/utils';
 
-/** Grouped by the job they do. `key` items are the core technologies, shown in bold. */
+/** Grouped by the job they do. `key` items are the everyday core, shown in large type. */
 export type SkillGroup = { id: string; title: string; context: L; key: L[]; rest: string[] };
 
 const same = (s: string): L => ({ ru: s, en: s });
