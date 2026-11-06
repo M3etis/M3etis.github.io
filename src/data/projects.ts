@@ -141,8 +141,8 @@ export const tools: Tool[] = [
     ],
     image: wezterm,
     alt: {
-      ru: 'Скриншот терминала WezTerm с темой Catppuccin Mocha и статус-баром.',
-      en: 'WezTerm terminal screenshot with Catppuccin Mocha theme and status bar.',
+      ru: 'WezTerm с темой Catppuccin Mocha: вкладки, две панели и статус-бар с git, Python, Node и Docker; подсказка по клавишам с лидером Ctrl+A и окно установщика для macOS.',
+      en: 'WezTerm with the Catppuccin Mocha theme: tabs, two panes and a status bar with git, Python, Node and Docker; a Ctrl+A leader-key cheat sheet and the macOS installer window.',
     },
   },
 ];
