@@ -3,7 +3,8 @@
  * Illustration of the ONK 2.0 admin review screen (not a screenshot).
  * Documented behaviour (docs/ai-module.md): the model returns a draft finding with a requirement and
  * a deadline, the cited norm must match a knowledge-base fragment, and only what the administrator
- * accepts or edits reaches the order. The model and prompt names are the ones from the docs.
+ * accepts or edits reaches the order. The prompt name is from the docs; the model shown is the target
+ * choice for production (open weights, strong Russian and Kazakh, long context), not the 7B used in tests.
  */
 import type { Lang } from '../../i18n/utils';
 import Icon from '../Icon.astro';
@@ -74,7 +75,7 @@ const c = {
       <span class="pv__btn pv__btn--ghost">{c.reject}</span>
     </div>
 
-    <p class="pv__meta mono">qwen2.5:7b · visit-analysis.v2</p>
+    <p class="pv__meta mono">Qwen3-235B-A22B · visit-analysis.v2</p>
   </div>
   <figcaption class="pv__cap">{label}</figcaption>
 </figure>
