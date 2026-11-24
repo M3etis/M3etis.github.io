@@ -1,0 +1,35 @@
+---
+import { ui } from '../i18n/ui';
+import { langFromUrl, pathFor } from '../i18n/utils';
+
+const lang = langFromUrl(Astro.url);
+const other = lang === 'ru' ? 'en' : 'ru';
+---
+
+<a href={pathFor(other)} class="lang" hreflang={other} lang={other} title={ui[lang].a11y.langSwitch}>
+  {other.toUpperCase()}<span class="visually-hidden"> — {ui[lang].a11y.langSwitch}</span>
+</a>
+
+<style>
+  .lang {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-mono);
+    text-decoration: none;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .lang:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+</style>

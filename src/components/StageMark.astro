@@ -1,0 +1,182 @@
+---
+/**
+ * A hand-off between sections, styled as one line of an agent's run log: the previous stage is
+ * checked off, the next one types itself out and blinks its caret — an open loop that pulls the
+ * reader to the next section. A dashed "wire" flows downward while the mark is on screen.
+ * The whole mark links to the next section. `stage="ready"` renders the final, resolved chip.
+ * Without JS the full text is simply visible; reduced motion stops the typing and the flow.
+ */
+import Icon from './Icon.astro';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  stage: keyof (typeof ui)['ru']['stages'];
+  /** Anchor of the next section. Required for every stage except the final one. */
+  href?: string;
+}
+
+const { lang, stage, href } = Astro.props;
+const s = ui[lang].stages[stage];
+const final = stage === 'ready';
+const typed = `${s.doing}…`;
+---
+
+{
+  final ? (
+    <p class="stage stage--final mono no-print" data-reveal>
+      <span class="stage__chip">
+        <span class="stage__done">
+          <Icon name="check" size="0.9em" />
+          {s.done}
+        </span>
+      </span>
+    </p>
+  ) : (
+    <p class="stage mono no-print" data-loop data-reveal>
+      <a class="stage__chip" href={href}>
+        <span class="stage__done">
+          <Icon name="check" size="0.9em" />
+          {s.done}
+        </span>
+        <span class="stage__sep" aria-hidden="true">
+          ·
+        </span>
+        <span class="stage__type" style={`--len: ${typed.length}ch`}>
+          {typed}
+        </span>
+      </a>
+      <span class="stage__wire" aria-hidden="true" />
+    </p>
+  )
+}
+
+<style>
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-block: clamp(var(--space-12), 6vw, var(--space-16)) 0;
+  }
+
+  .stage--final {
+    align-items: flex-start;
+    margin-block: 0 var(--space-5);
+  }
+
+  .stage__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-4);
+    border: var(--stroke) solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-mono);
+    white-space: nowrap;
+    text-decoration: none;
+    transition:
+      border-color var(--duration-base) var(--ease-out),
+      color var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+  }
+
+  @media (max-width: 26rem) {
+    .stage__chip {
+      font-size: 0.6875rem;
+    }
+  }
+
+  a.stage__chip:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text);
+    transform: translateY(-1px);
+  }
+
+  .stage__done {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .stage__done :global(svg) {
+    color: var(--color-success);
+  }
+
+  .stage--final .stage__chip {
+    border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+    color: var(--color-success);
+  }
+
+  .stage__sep {
+    color: var(--color-text-subtle);
+  }
+
+  /* The current stage types itself out; the caret is the clipping edge's border. */
+  .stage__type {
+    display: inline-block;
+    overflow: hidden;
+    width: var(--len);
+    max-width: 100%;
+    border-right: 2px solid var(--color-accent);
+    color: var(--color-text);
+  }
+
+  /* The dashes live on a pseudo-element that is one period taller and slides by transform (no repaints). */
+  .stage__wire {
+    position: relative;
+    overflow: hidden;
+    width: 2px;
+    height: clamp(2.5rem, 6vh, 4rem);
+    margin-top: var(--space-3);
+    opacity: 0.75;
+    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  }
+
+  .stage__wire::before {
+    content: '';
+    position: absolute;
+    inset: -11px 0 0;
+    background: repeating-linear-gradient(to bottom, var(--color-accent) 0 5px, transparent 5px 11px);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .stage__type {
+      animation: stage-caret 1.1s step-end infinite;
+    }
+
+    /* Plays only while on screen (data-loop → .is-playing), so the typing replays on return. */
+    .stage.is-playing .stage__type {
+      animation:
+        stage-type 1.3s steps(26) 200ms both,
+        stage-caret 1.1s step-end infinite;
+    }
+
+    .stage.is-playing .stage__wire::before {
+      animation: stage-flow 0.8s linear infinite;
+    }
+  }
+
+  @keyframes stage-type {
+    from {
+      width: 0;
+    }
+  }
+
+  @keyframes stage-caret {
+    50% {
+      border-right-color: transparent;
+    }
+  }
+
+  @keyframes stage-flow {
+    to {
+      transform: translateY(11px);
+    }
+  }
+</style>

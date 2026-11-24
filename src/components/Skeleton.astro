@@ -1,0 +1,73 @@
+---
+/**
+ * Placeholder surface behind media. A short sweep while loading; the image fades in on top.
+ * Purely decorative.
+ */
+interface Props {
+  ratio?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { ratio, class: className, ...rest } = Astro.props;
+---
+
+<div class:list={['skeleton', className]} style={ratio ? `aspect-ratio: ${ratio}` : undefined} {...rest}>
+  <slot />
+</div>
+
+<style>
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+    background: var(--color-surface-2);
+  }
+
+  .skeleton::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--color-surface) 60%, transparent) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: skeleton-sweep 1.2s var(--ease-out) 2;
+    pointer-events: none;
+  }
+
+  /* Media sits above the placeholder and fades in once it has decoded. */
+  .skeleton :global(img) {
+    position: relative;
+    z-index: 1;
+  }
+
+  :global(.js) .skeleton :global(img[data-fade]) {
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-out);
+  }
+
+  :global(.js) .skeleton :global(img[data-fade].is-loaded) {
+    opacity: 1;
+  }
+
+  @keyframes skeleton-sweep {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton::before {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // Fade media in once decoded (already-cached images are marked immediately).
+  for (const img of document.querySelectorAll<HTMLImageElement>('img[data-fade]')) {
+    const done = () => img.classList.add('is-loaded');
+    if (img.complete && img.naturalWidth) done();
+    else img.addEventListener('load', done, { once: true });
+    img.addEventListener('error', done, { once: true });
+  }
+</script>

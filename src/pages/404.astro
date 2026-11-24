@@ -1,0 +1,58 @@
+---
+import Button from '../components/Button.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Base from '../layouts/Base.astro';
+import { ui } from '../i18n/ui';
+
+// GitHub Pages serves one 404 for every path, so it is bilingual.
+const ru = ui.ru.notFound;
+const en = ui.en.notFound;
+---
+
+<Base lang="ru" title={`404 — ${ru.title}`} path="/404" home={false} noindex>
+  <section class="container container--medium nf">
+    <p class="nf__code mono">404</p>
+    <h1 class="nf__title">{ru.title}</h1>
+    <p class="nf__text">{ru.text}</p>
+    <div lang="en" class="nf__en">
+      <EmptyState icon="globe" title={en.title} text={en.text} compact />
+    </div>
+    <div class="nf__actions">
+      <Button href="/" iconEnd="arrow-right">{ru.home}</Button>
+      <Button href="/en/" variant="secondary" lang="en">{en.home}</Button>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    padding-block: clamp(var(--space-16), 12vw, var(--space-24));
+  }
+
+  .nf__code {
+    color: var(--color-accent);
+  }
+
+  .nf__title {
+    margin-top: var(--space-3);
+    font-size: var(--text-h1);
+  }
+
+  .nf__text {
+    margin-top: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-lead);
+  }
+
+  .nf__en {
+    margin-top: var(--space-8);
+    max-width: 32rem;
+  }
+
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+  }
+</style>

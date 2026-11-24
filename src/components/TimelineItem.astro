@@ -1,0 +1,132 @@
+---
+import Link from './Link.astro';
+import SkillChip from './SkillChip.astro';
+import Todo from './Todo.astro';
+
+interface Props {
+  startLabel: string;
+  endLabel: string;
+  datetimeStart: string;
+  datetimeEnd?: string;
+  duration?: string;
+  role: string;
+  org: string;
+  place?: string;
+  url?: string;
+  points: string[];
+  tags?: string[];
+  current?: boolean;
+}
+
+const { startLabel, endLabel, datetimeStart, datetimeEnd, duration, role, org, place, url, points, tags, current } = Astro.props;
+---
+
+<li class:list={['tl', { 'tl--current': current }]} data-reveal>
+  <div class="tl__meta">
+    <p class="tl__period">
+      <time datetime={datetimeStart}>{startLabel}</time>
+      {' — '}
+      {datetimeEnd ? <time datetime={datetimeEnd}>{endLabel}</time> : endLabel}
+    </p>
+    {duration && <p class="tl__duration">{duration}</p>}
+  </div>
+  <div class="tl__body">
+    <h3 class="tl__role">{role}</h3>
+    <p class="tl__org">
+      {url ? <Link href={url}>{org}</Link> : org}
+      {place && <span class="tl__place"> · {place}</span>}
+    </p>
+    <ul class="tl__points" role="list">
+      {points.map((p) => <li><Todo text={p} /></li>)}
+    </ul>
+    {tags && tags.length > 0 && (
+      <ul class="tl__tags" role="list">
+        {tags.map((tag) => <li><SkillChip>{tag}</SkillChip></li>)}
+      </ul>
+    )}
+  </div>
+</li>
+
+<style>
+  .tl {
+    display: grid;
+    gap: var(--space-2) var(--space-10);
+    padding-block: var(--space-8);
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 48rem) {
+    .tl {
+      grid-template-columns: 11rem 1fr;
+    }
+  }
+
+  .tl__period {
+    color: var(--color-text);
+    font-size: var(--text-small);
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tl--current .tl__period::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-inline-end: var(--space-2);
+    border-radius: 50%;
+    background: var(--color-success);
+    vertical-align: 0.05em;
+  }
+
+  .tl__duration {
+    margin-top: 2px;
+    color: var(--color-text-subtle);
+    font-size: var(--text-caption);
+  }
+
+  .tl__role {
+    font-size: var(--text-h3);
+    letter-spacing: var(--tracking-h3);
+  }
+
+  .tl__org {
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+  }
+
+  .tl__place {
+    color: var(--color-text-subtle);
+  }
+
+  .tl__points {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 42rem;
+    margin-top: var(--space-4);
+    color: var(--color-text-muted);
+  }
+
+  .tl__points li {
+    position: relative;
+    padding-inline-start: var(--space-4);
+  }
+
+  .tl__points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 50%;
+    background: var(--color-text-subtle);
+  }
+
+  .tl__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+</style>

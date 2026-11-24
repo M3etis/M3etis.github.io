@@ -1,0 +1,160 @@
+---
+import { Picture } from 'astro:assets';
+import type { Tool } from '../data/projects';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+import Icon from './Icon.astro';
+import Skeleton from './Skeleton.astro';
+import SkillChip from './SkillChip.astro';
+
+interface Props {
+  tool: Tool;
+  lang: Lang;
+}
+
+const { tool: p, lang } = Astro.props;
+const t = ui[lang].projects;
+const a11y = ui[lang].a11y;
+const headingId = `tool-${p.id}`;
+const label = { live: t.live, code: t.code, releases: t.releases } as const;
+---
+
+<article class="tool" aria-labelledby={headingId} data-reveal="card">
+  <Skeleton class="tool__media">
+    <Picture
+      src={p.image}
+      alt={p.alt[lang]}
+      formats={['avif', 'webp']}
+      fallbackFormat="webp"
+      widths={[480, 800, 1200]}
+      sizes="(min-width: 60rem) 560px, 92vw"
+      loading="lazy"
+      decoding="async"
+      class="tool__img"
+      data-fade
+    />
+  </Skeleton>
+
+  <div class="tool__body">
+    <p class="tool__kicker">{p.kicker[lang]}</p>
+    <h3 id={headingId} class="tool__title">{p.title}</h3>
+    <p class="tool__summary">{p.summary[lang]}</p>
+    <ul class="tool__stack" role="list">
+      {p.stack.map((s) => <li><SkillChip>{s}</SkillChip></li>)}
+    </ul>
+    <ul class="tool__links" role="list">
+      {
+        p.links.map((l) => (
+          <li>
+            <a href={l.href} target="_blank" rel="noopener noreferrer">
+              {l.kind === 'code' && <Icon name="github" size="1rem" />}
+              {label[l.kind]}
+              <Icon name="arrow-up-right" size="0.9rem" class="tool__arrow" />
+              <span class="visually-hidden">
+                {p.title} {a11y.newTab}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</article>
+
+<style>
+  .tool {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    transition:
+      transform var(--duration-slow) var(--ease-out),
+      box-shadow var(--duration-slow) var(--ease-out),
+      opacity var(--duration-enter) var(--ease-out);
+  }
+
+  .tool:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-3);
+  }
+
+  .tool :global(.tool__media) {
+    aspect-ratio: 16 / 10;
+    border-radius: 0;
+  }
+
+  .tool :global(picture) {
+    height: 100%;
+  }
+
+  .tool :global(.tool__img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
+
+  .tool__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: clamp(var(--space-6), 3vw, var(--space-8));
+  }
+
+  .tool__kicker {
+    color: var(--color-accent);
+    font-size: var(--text-small);
+    font-weight: var(--weight-semibold);
+  }
+
+  .tool__title {
+    margin-top: var(--space-1);
+    font-size: var(--text-h3);
+    letter-spacing: var(--tracking-h3);
+  }
+
+  .tool__summary {
+    margin-top: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-small);
+  }
+
+  .tool__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+
+  .tool__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-5);
+    margin-top: auto;
+    padding-top: var(--space-5);
+  }
+
+  .tool__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    color: var(--color-accent);
+    font-size: var(--text-small);
+    text-decoration: none;
+  }
+
+  .tool__links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .tool :global(.tool__arrow) {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .tool__links a:hover :global(.tool__arrow) {
+    transform: translate(2px, -2px);
+  }
+</style>

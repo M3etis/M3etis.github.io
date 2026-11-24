@@ -1,0 +1,238 @@
+---
+import Icon from '../components/Icon.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import StageMark from '../components/StageMark.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { cases, tools } from '../data/projects';
+import { site } from '../data/site';
+import type { Lang } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang].projects;
+const a11y = ui[lang].a11y;
+---
+
+<section class="section projects" data-surface="stage" aria-labelledby="projects">
+  <div class="container">
+    <SectionHeader id="projects" title={t.title} intro={t.intro} />
+
+    <div class="projects__cases" data-rail>
+      <div class="projects__track" role="group" tabindex="0" aria-label={t.railLabel}>
+        {cases.map((p) => <ProjectCard project={p} lang={lang} />)}
+      </div>
+      <div class="projects__controls no-print" data-rail-controls hidden>
+        <button type="button" class="projects__arrow" data-rail-prev aria-label={t.prev}>
+          <Icon name="chevron-right" size="1.1em" class="projects__arrow-flip" />
+        </button>
+        {cases.map((p, i) => <button type="button" class="projects__dot" data-rail-dot={i} aria-label={p.title} />)}
+        <button type="button" class="projects__arrow" data-rail-next aria-label={t.next}>
+          <Icon name="chevron-right" size="1.1em" />
+        </button>
+      </div>
+    </div>
+
+    <h3 class="projects__tools-title" data-reveal>{t.tools}</h3>
+    <div class="projects__tools">
+      {tools.map((p) => <ToolCard tool={p} lang={lang} />)}
+    </div>
+
+    <p class="projects__more" data-reveal>
+      <a href={site.github} target="_blank" rel="noopener noreferrer">
+        {t.more}<Icon name="chevron-right" size="1em" /><span class="visually-hidden"> {a11y.newTab}</span>
+      </a>
+    </p>
+
+    <StageMark lang={lang} stage="projects" href="#skills" />
+  </div>
+</section>
+
+<script>
+  const rail = document.querySelector<HTMLElement>('[data-rail]');
+  const track = rail?.querySelector<HTMLElement>('.projects__track');
+  const controls = rail?.querySelector<HTMLElement>('[data-rail-controls]');
+  if (rail && track && controls) {
+    const slides = [...track.children] as HTMLElement[];
+    const dots = [...controls.querySelectorAll<HTMLButtonElement>('[data-rail-dot]')];
+    const prev = controls.querySelector<HTMLButtonElement>('[data-rail-prev]');
+    const next = controls.querySelector<HTMLButtonElement>('[data-rail-next]');
+
+    const step = () => (slides.length > 1 ? slides[1].offsetLeft - slides[0].offsetLeft : track.clientWidth);
+    const index = () => Math.min(slides.length - 1, Math.max(0, Math.round(track.scrollLeft / step())));
+
+    const sync = () => {
+      const sliding = track.scrollWidth - track.clientWidth > 8;
+      controls.hidden = !sliding;
+      if (!sliding) return;
+      const i = index();
+      dots.forEach((d, n) => d.setAttribute('aria-current', String(n === i)));
+      if (prev) prev.disabled = i <= 0;
+      if (next) next.disabled = i >= slides.length - 1;
+    };
+
+    const go = (i: number) => {
+      const slide = slides[Math.min(slides.length - 1, Math.max(0, i))];
+      track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
+    };
+
+    prev?.addEventListener('click', () => go(index() - 1));
+    next?.addEventListener('click', () => go(index() + 1));
+    dots.forEach((d, n) => d.addEventListener('click', () => go(n)));
+
+    track.addEventListener('scroll', sync, { passive: true });
+    addEventListener('resize', sync);
+    sync();
+
+    // Browsers scroll the page to an in-slide anchor but not the rail (or get interrupted by the
+    // page's own smooth scroll): after the native handling, jump the rail to the right slide.
+    const focusCase = () => {
+      const target = location.hash && document.getElementById(location.hash.slice(1));
+      const slide = target && slides.find((s) => s.contains(target));
+      if (slide) window.setTimeout(() => track.scrollTo({ left: slide.offsetLeft, behavior: 'instant' }), 60);
+    };
+    addEventListener('hashchange', focusCase);
+    focusCase();
+  }
+</script>
+
+<style>
+  .projects__track {
+    position: relative;
+    display: grid;
+    gap: var(--grid-gap);
+  }
+
+  /* On wide screens the two cases ride a snap rail; a sliver of the next card peeks in. */
+  @media (min-width: 60rem) {
+    .projects__track {
+      grid-auto-flow: column;
+      grid-auto-columns: calc(100% - 3.5rem);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .projects__track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .projects__track > :global(.case) {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+  }
+
+  .projects__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+  }
+
+  .projects__controls[hidden] {
+    display: none;
+  }
+
+  .projects__arrow {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--stroke) solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition:
+      border-color var(--duration-base) var(--ease-out),
+      color var(--duration-base) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out);
+  }
+
+  .projects__arrow:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .projects__arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .projects__arrow :global(.projects__arrow-flip) {
+    transform: scaleX(-1);
+  }
+
+  .projects__dot {
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0.625rem;
+    border: 0;
+    background: transparent;
+  }
+
+  .projects__dot::before {
+    content: '';
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+    transition: background-color var(--duration-base) var(--ease-out);
+  }
+
+  .projects__dot[aria-current='true']::before {
+    background: var(--color-accent);
+  }
+
+  .projects__tools-title {
+    margin-top: clamp(var(--space-16), 7vw, var(--space-24));
+    margin-bottom: var(--space-6);
+    font-size: var(--text-h3);
+    letter-spacing: var(--tracking-h3);
+  }
+
+  .projects__tools {
+    display: grid;
+    gap: var(--grid-gap);
+  }
+
+  @media (min-width: 48rem) {
+    .projects__tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .projects__more {
+    margin-top: var(--space-10);
+    text-align: center;
+  }
+
+  .projects__more a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 2.75rem;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .projects__more a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .projects__more a :global(svg) {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .projects__more a:hover :global(svg) {
+    transform: translateX(3px);
+  }
+</style>

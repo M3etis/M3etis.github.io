@@ -1,0 +1,130 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+
+/**
+ * primary   — filled accent pill, one per view.
+ * secondary — quiet filled pill (neutral surface).
+ * text      — accent text with a chevron that moves on hover.
+ */
+interface Props {
+  href?: string;
+  variant?: 'primary' | 'secondary' | 'text';
+  size?: 'md' | 'lg' | 'xl';
+  icon?: IconName;
+  iconEnd?: IconName;
+  external?: boolean;
+  download?: boolean | string;
+  type?: 'button' | 'submit';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  icon,
+  iconEnd,
+  external = false,
+  download,
+  type = 'button',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const linkProps = href
+  ? {
+      href,
+      ...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+      ...(download ? { download: download === true ? '' : download } : {}),
+    }
+  : { type };
+const end = iconEnd ?? (variant === 'text' ? 'chevron-right' : undefined);
+---
+
+<Tag class:list={['btn', `btn--${variant}`, `btn--${size}`, className]} {...linkProps} {...rest}>
+  {icon && <Icon name={icon} size="1.05em" />}
+  <span><slot /></span>
+  {end && <Icon name={end} size="1em" class="btn__end" />}
+</Tag>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 2.75rem; /* 44px touch target */
+    padding: 0 var(--space-6);
+    border: 0;
+    border-radius: var(--radius-full);
+    font-size: var(--text-body);
+    font-weight: var(--weight-regular);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    /* --mag-x / --mag-y are set by the magnetic-pointer script (data-magnetic) */
+    transform: translate(var(--mag-x, 0px), var(--mag-y, 0px));
+    transition:
+      background-color var(--duration-base) var(--ease-out),
+      color var(--duration-base) var(--ease-out),
+      transform 450ms var(--ease-expo);
+  }
+
+  .btn--lg {
+    min-height: 3rem;
+    padding-inline: var(--space-8);
+    font-size: 1.0625rem;
+  }
+
+  .btn:active {
+    transform: translate(var(--mag-x, 0px), var(--mag-y, 0px)) scale(0.97);
+    transition-duration: var(--duration-fast);
+  }
+
+  .btn--xl {
+    min-height: 3.25rem;
+    padding-inline: 1.875rem;
+    font-size: 1.0625rem;
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.01em;
+  }
+
+  .btn--primary {
+    background: var(--color-accent-fill);
+    color: var(--color-accent-contrast);
+  }
+
+  .btn--primary:hover {
+    background: var(--color-accent-hover);
+  }
+
+  .btn--secondary {
+    background: var(--btn-secondary-bg, var(--color-surface-2));
+    color: var(--color-text);
+  }
+
+  .btn--secondary:hover {
+    background: color-mix(in srgb, var(--btn-secondary-bg, var(--color-surface-2)) 88%, var(--color-text) 8%);
+  }
+
+  .btn--text {
+    padding-inline: var(--space-2);
+    background: transparent;
+    color: var(--color-accent);
+  }
+
+  .btn--text:hover span {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .btn :global(.btn__end) {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .btn:hover :global(.btn__end) {
+    transform: translateX(3px);
+  }
+</style>

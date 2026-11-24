@@ -1,0 +1,12 @@
+.mimocode/
+output/
+.DS_Store
+node_modules/
+dist/
+.astro/
+.claude/
+# local design drafts and archived components — not published
+design/
+
+# personal notes (audit, changelog) — kept local only
+PORTFOLIO_*.md

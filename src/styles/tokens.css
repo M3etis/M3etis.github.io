@@ -1,0 +1,233 @@
+/*
+ * Design tokens — "Clarity".
+ * Layer 1: primitives (raw values). Layer 2: semantic tokens (what components use), per theme.
+ * A section can switch to the dark "stage" surface with `data-surface="stage"`; it remaps the
+ * semantic tokens locally, so components inside need no extra variants.
+ */
+
+:root {
+  /* ---------- Primitives ---------- */
+  --white: #ffffff;
+  --gray-50: #f5f5f7;
+  --gray-100: #ebebef;
+  --gray-200: #e3e3e8;
+  --gray-300: #c7c7cc;
+  --gray-500: #6c6c73;
+  --gray-600: #5f5f66;
+  --gray-900: #111113;
+  --black: #000000;
+  --night-950: #0b0b0c;
+  --night-900: #161618;
+  --night-850: #1c1c1f;
+  --night-700: #2c2c2f;
+  --night-600: #3a3a3e;
+  --fog-500: #8e8e95;
+  --fog-400: #a1a1a8;
+  --fog-50: #f5f5f7;
+
+  --blue-700: #0058c7;
+  --blue-650: #0062d9;
+  --blue-600: #0066e6;
+  --blue-550: #0a6cff;
+  --blue-400: #3b8bff;
+  --blue-50: #e8f1fd;
+  --blue-950: #0e2a4d;
+
+  /* ---------- Typography ---------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* Fluid scale, 320px → 1440px. rem-based, so it follows the user's font-size setting. */
+  --text-display: clamp(2.375rem, 1.75rem + 3.1vw, 4rem); /* 38 → 64 */
+  --text-h1: clamp(2.125rem, 1.6rem + 2.6vw, 3.5rem); /* 34 → 56 */
+  --text-h2: clamp(1.75rem, 1.3rem + 2.3vw, 3rem); /* 28 → 48 */
+  --text-h3: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem); /* 20 → 24 */
+  --text-lead: clamp(1.1875rem, 1.1rem + 0.45vw, 1.3125rem); /* 19 → 21 */
+  --text-body: 1.0625rem; /* 17 */
+  --text-small: 0.9375rem; /* 15 */
+  --text-caption: 0.8125rem; /* 13 */
+  --text-mono: 0.8125rem; /* 13 */
+  /* aliases kept for older components */
+  --text-micro: var(--text-caption);
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.2;
+  --leading-body: 1.5;
+  --tracking-display: -0.035em;
+  --tracking-h1: -0.03em;
+  --tracking-h2: -0.025em;
+  --tracking-h3: -0.015em;
+  --tracking-heading: var(--tracking-h3);
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---------- Spacing (4pt) ---------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --section-pad: clamp(4rem, 2.6rem + 5.5vw, 10rem); /* 64 → 160 */
+
+  /* ---------- Layout ---------- */
+  --container-text: 61.25rem; /* 980 */
+  --container-wide: 75rem; /* 1200 */
+  --container-medium: var(--container-text);
+  --gutter: clamp(1.25rem, 0.6rem + 3vw, 2.5rem);
+  --grid-gap: clamp(1rem, 0.7rem + 1.2vw, 1.5rem);
+  --header-height: 3.25rem;
+
+  /* ---------- Shape & depth ---------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+  --stroke: 1px;
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1); /* long, soft landing — headlines, cards, product shots */
+  --duration-reveal: 900ms; /* masked headline lines and card entrances */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 350ms;
+  --duration-enter: 400ms;
+  --stagger: 60ms;
+
+  /* ---------- Light theme (default) ---------- */
+  color-scheme: light;
+  --color-bg: var(--white);
+  --color-bg-alt: var(--gray-50);
+  --color-surface: var(--white);
+  --color-surface-2: var(--gray-50);
+  --color-text: var(--gray-900);
+  --color-text-muted: var(--gray-600); /* secondary */
+  --color-text-subtle: var(--gray-500); /* tertiary */
+  --color-border: var(--gray-200);
+  --color-border-strong: var(--gray-300);
+  --color-accent: var(--blue-600); /* links, accents on text */
+  --color-accent-fill: var(--blue-600); /* filled buttons */
+  --color-accent-hover: var(--blue-700);
+  --color-accent-contrast: var(--white);
+  --color-accent-soft: var(--blue-50);
+  --color-success: #157a3c;
+  --color-warning: #9e5200;
+  --color-danger: #c4281b;
+  --color-focus: var(--blue-600);
+  --color-code-bg: var(--night-850);
+  --color-code-text: var(--fog-50);
+  --color-header: rgb(255 255 255 / 0.72);
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / 0.04), 0 12px 32px -12px rgb(0 0 0 / 0.14);
+  --shadow-3: 0 4px 12px rgb(0 0 0 / 0.05), 0 24px 56px -20px rgb(0 0 0 / 0.22);
+}
+
+/* ---------- Dark theme: OS preference unless light was picked explicitly ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-bg: var(--black);
+    --color-bg-alt: var(--night-950);
+    --color-surface: var(--night-900);
+    --color-surface-2: var(--night-850);
+    --color-text: var(--fog-50);
+    --color-text-muted: var(--fog-400);
+    --color-text-subtle: var(--fog-500);
+    --color-border: var(--night-700);
+    --color-border-strong: var(--night-600);
+    --color-accent: var(--blue-400);
+    --color-accent-fill: var(--blue-550);
+    --color-accent-hover: var(--blue-650);
+    --color-accent-contrast: var(--white);
+    --color-accent-soft: var(--blue-950);
+    --color-success: #4cc38a;
+    --color-warning: #f5a524;
+    --color-danger: #ff6b5e;
+    --color-focus: var(--blue-400);
+    --color-code-bg: var(--night-850);
+    --color-code-text: var(--fog-50);
+    --color-header: rgb(0 0 0 / 0.68);
+
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow-2: 0 2px 6px rgb(0 0 0 / 0.4), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+    --shadow-3: 0 4px 12px rgb(0 0 0 / 0.4), 0 24px 56px -20px rgb(0 0 0 / 0.8);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: var(--black);
+  --color-bg-alt: var(--night-950);
+  --color-surface: var(--night-900);
+  --color-surface-2: var(--night-850);
+  --color-text: var(--fog-50);
+  --color-text-muted: var(--fog-400);
+  --color-text-subtle: var(--fog-500);
+  --color-border: var(--night-700);
+  --color-border-strong: var(--night-600);
+  --color-accent: var(--blue-400);
+  --color-accent-fill: var(--blue-550);
+  --color-accent-hover: var(--blue-650);
+  --color-accent-contrast: var(--white);
+  --color-accent-soft: var(--blue-950);
+  --color-success: #4cc38a;
+  --color-warning: #f5a524;
+  --color-danger: #ff6b5e;
+  --color-focus: var(--blue-400);
+  --color-code-bg: var(--night-850);
+  --color-code-text: var(--fog-50);
+  --color-header: rgb(0 0 0 / 0.68);
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / 0.4), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+  --shadow-3: 0 4px 12px rgb(0 0 0 / 0.4), 0 24px 56px -20px rgb(0 0 0 / 0.8);
+}
+
+/* ---------- Stage: the dark showcase surface, same in both themes ---------- */
+[data-surface='stage'] {
+  color-scheme: dark;
+  --color-bg: var(--night-950);
+  --color-bg-alt: var(--night-950);
+  --color-surface: var(--night-900);
+  --color-surface-2: var(--night-850);
+  --color-text: var(--fog-50);
+  --color-text-muted: var(--fog-400);
+  --color-text-subtle: var(--fog-500);
+  --color-border: var(--night-700);
+  --color-border-strong: var(--night-600);
+  --color-accent: var(--blue-400);
+  --color-accent-fill: var(--blue-550);
+  --color-accent-hover: var(--blue-650);
+  --color-accent-soft: var(--blue-950);
+  --color-success: #4cc38a;
+  --color-warning: #f5a524;
+  --color-danger: #ff6b5e;
+  --color-focus: var(--blue-400);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / 0.4), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+  --shadow-3: 0 4px 12px rgb(0 0 0 / 0.4), 0 24px 56px -20px rgb(0 0 0 / 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-enter: 0ms;
+    --duration-reveal: 0ms;
+    --stagger: 0ms;
+  }
+}

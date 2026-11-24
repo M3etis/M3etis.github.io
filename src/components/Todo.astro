@@ -1,0 +1,17 @@
+---
+/**
+ * Renders a string, or a dashed placeholder if it starts with the TODO marker.
+ * Keeps unconfirmed facts visible in the UI and greppable in the code.
+ */
+import { isTodo, TODO_PREFIX } from '../i18n/utils';
+
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const todo = isTodo(text);
+const body = todo ? text.slice(TODO_PREFIX.length).replace(/^\s*—\s*/, '') : text;
+---
+
+{todo ? <span class="todo" title={TODO_PREFIX}>{body}</span> : <Fragment>{text}</Fragment>}

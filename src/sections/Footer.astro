@@ -1,0 +1,103 @@
+---
+import Icon from '../components/Icon.astro';
+import { site } from '../data/site';
+import type { Lang } from '../i18n/utils';
+import { pathFor } from '../i18n/utils';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  home?: boolean;
+}
+
+const { lang, home = true } = Astro.props;
+const t = ui[lang];
+const base = home ? '' : pathFor(lang);
+const sha = (import.meta.env.PUBLIC_BUILD_SHA ?? 'local').slice(0, 7);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <p class="site-footer__copy">© {year} {t.footer.rights}</p>
+
+    <nav aria-label={t.a11y.footerNav} class="site-footer__nav no-print">
+      <a href={`${base}#what`}>{t.nav.what}</a>
+      <a href={`${base}#projects`}>{t.nav.projects}</a>
+      <a href={`${base}#experience`}>{t.nav.experience}</a>
+      <a href={`${base}#contact`}>{t.nav.contact}</a>
+      <a href={site.github} target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> {t.a11y.newTab}</span></a>
+    </nav>
+
+    <p class="site-footer__build mono">
+      <a href={site.repo} target="_blank" rel="noopener noreferrer" title={t.footer.source}>
+        {t.footer.build} {sha}<span class="visually-hidden"> — {t.footer.source} {t.a11y.newTab}</span>
+      </a>
+      <a href="#top" class="site-footer__top no-print">
+        <Icon name="arrow-up" size="1em" />
+        <span class="visually-hidden">{t.footer.top}</span>
+      </a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-subtle);
+    font-size: var(--text-small);
+  }
+
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-8);
+    padding-block: var(--space-6);
+  }
+
+  .site-footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-5);
+  }
+
+  .site-footer a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    color: var(--color-text);
+  }
+
+  .site-footer__build {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .site-footer__top {
+    justify-content: center;
+    width: 2.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    transition: border-color var(--duration-base) var(--ease-out);
+  }
+
+  .site-footer__top > :global(svg) {
+    transition: transform var(--duration-base) var(--ease-spring);
+  }
+
+  .site-footer__top:hover {
+    border-color: var(--color-text-subtle);
+  }
+
+  .site-footer__top:hover > :global(svg) {
+    transform: translateY(-3px);
+  }
+</style>
